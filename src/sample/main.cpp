@@ -1,13 +1,15 @@
-//#include "unbuggy/info_allocator.hpp"
+#include "unbuggy/info_allocator.hpp"
 
 #include <iostream>
 
+namespace unb = unbuggy;
+
+struct item {
+};
+
 int main()
 {
-    std::cout << "Hello\n";
+    unb::info_allocator<item> a;
 
-
-    //unbuggy::info_allocator a;
-
-    //std::cout << sizeof(a) << '\n';
+    std::cout << sizeof(a) << '\n';
 }

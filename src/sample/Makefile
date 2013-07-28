@@ -3,10 +3,15 @@ CPPFLAGS = -I..
 CXXFLAGS = -std=c++11 -pedantic -Wall -stdlib=libc++
 LDFLAGS = -L../unbuggy -lunbuggy -stdlib=libc++
 
-.PHONY: clean
+.PHONY: clean default run
 
-main: main.o
-	$(CXX) -o $@ $< $(LDFLAGS)
+default: run
 
 clean:
 	rm -f main main.o
+
+run: main
+	@DYLD_LIBRARY_PATH=../unbuggy ./main
+
+main: main.o
+	$(CXX) -o $@ $< $(LDFLAGS)
