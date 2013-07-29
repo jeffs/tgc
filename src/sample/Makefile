@@ -15,3 +15,4 @@ run: main
 
 main: main.o
 	$(CXX) -o $@ $< $(LDFLAGS)
+

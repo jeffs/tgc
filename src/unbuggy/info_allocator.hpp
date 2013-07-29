@@ -1,6 +1,7 @@
 #ifndef INCLUDED_UNBUGGY_INFO_ALLOCATOR
 #define INCLUDED_UNBUGGY_INFO_ALLOCATOR
 
+#include <iostream> // XXX
 #include <memory>
 
 namespace unbuggy {
@@ -20,6 +21,9 @@ class info_allocator {
     /** Wrap a default-constructed instance of `A`. */
     info_allocator();
 
+    ///** Copy `o`. */
+    //info_allocator(info_allocator const& o);
+
     /** Wrap a copy of `a`. */
     info_allocator(A const& a);
 };
@@ -30,10 +34,14 @@ info_allocator<T, A>::info_allocator()
 {
 }
 
+//template <typename T, typename A>
+//info_allocator<T, A>::info_allocator(info_allocator const& o)
+
 template <typename T, typename A>
 info_allocator<T, A>::info_allocator(A const& a)
   : m_a( a )
 {
+    std::cout << __PRETTY_FUNCTION__ << '\n';
 }
 
 } // close namespace unbuggy
