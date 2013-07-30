@@ -52,7 +52,9 @@ class info_allocator {
     template <typename U>
     struct rebind {
         typedef
-            unbuggy::info_allocator<U, typename A::template rebind<U>::other>
+            unbuggy::info_allocator<
+                U
+              , typename std::allocator_traits<A>::template rebind_alloc<U> >
             other;                      ///< rebound allocator type
     };
 
@@ -79,7 +81,7 @@ class info_allocator {
     explicit info_allocator(
             unbuggy::info_allocator<
                 U
-              , typename A::template rebind<U>::other
+              , typename std::allocator_traits<A>::template rebind_alloc<U>
             > const& a);
         ///< Converts and decorates the underlying allocator of \a a.  Note
         /// that \a a has a type similar to this, except that \a a allocates
@@ -131,8 +133,14 @@ bool operator!=(
 
 template <typename T, typename A, typename U>
 bool operator==(
-        info_allocator<T, A> const&                                     a
-      , info_allocator<U, typename A::template rebind<U>::other> const& b);
+        info_allocator<
+            T
+          , A
+        > const& a
+      , info_allocator<
+            U
+          , typename std::allocator_traits<A>::template rebind_alloc<U>
+        > const& b);
     ///< Returns \c true if \a a and \a b have the same value.  The allocators
     /// have the same value if \a a has the same value as the result of
     /// explicitly converting \a b to the type of \a a.  If allocators compare
@@ -141,8 +149,14 @@ bool operator==(
 
 template <typename T, typename A, typename U>
 bool operator!=(
-        info_allocator<T, A> const& a
-      , info_allocator<U, typename A::template rebind<U>::other> const& b);
+        info_allocator<
+            T
+          , A
+        > const& a
+      , info_allocator<
+            U
+          , typename std::allocator_traits<A>::template rebind_alloc<U>
+        > const& b);
     ///< Returns \c true if \a a and \a b do not have the same value.
     /// Equivalent to <code>!(a == b)</code>.
 
@@ -173,7 +187,7 @@ template <typename U>
 info_allocator<T, A>::info_allocator(
         unbuggy::info_allocator<
             U
-          , typename A::template rebind<U>::other
+          , typename std::allocator_traits<A>::template rebind_alloc<U>
         > const& a)
   : m_a( a.alloc() )
   , m_allocate_calls( )
@@ -258,19 +272,31 @@ bool unbuggy::operator!=(
 
 template <typename T, typename A, typename U>
 bool unbuggy::operator==(
-        info_allocator<T, A> const&                                  a
-      , info_allocator<U, typename A::template rebind<U>::other> const& b)
+        info_allocator<
+            T
+          , A
+        > const& a
+      , info_allocator<
+            U
+          , typename std::allocator_traits<A>::template rebind_alloc<U>
+        > const& b)
 {
-    return a == typename info_allocator<
-        U
-      , typename A::template rebind<U>::other
-    >::template rebind<T>::other( b );
+    typedef typename std::allocator_traits<A>::template rebind_alloc<U> B;
+    typedef typename info_allocator<U, B>::template rebind<T>::other    Y;
+
+    return a == Y( b );
 }
 
 template <typename T, typename A, typename U>
 bool unbuggy::operator!=(
-        info_allocator<T, A> const&                                  a
-      , info_allocator<U, typename A::template rebind<U>::other> const& b)
+        info_allocator<
+            T
+          , A
+        > const& a
+      , info_allocator<
+            U
+          , typename std::allocator_traits<A>::template rebind_alloc<U>
+        > const& b)
 {
     return !(a == b);
 }

@@ -59,26 +59,13 @@ typedef unbuggy::info_allocator<U> Y;
 typedef std::allocator_traits<X> XX;
 typedef std::allocator_traits<Y> YY;
 
-// In addition to the above types, the following allocator type (not mentioned
-// in the standard) is useful for checking allocator equality operations.
-
-// A simple allocator type of which distinct instances are never equal.
-//
-struct finicky_allocator: std::allocator<U> { };
-
-bool operator==(finicky_allocator const& fa1, finicky_allocator const& fa2)
-    // Returns true only if fa1 and fa2 are the same object.
-{
-    return &fa1 == &fa2;
-}
-
 int main()
 {
     // [allocator.requirements] terminology, continued
 
     T const& t = T( );
     X       a_, a1_, a2_;   // initializers for a, a1, and a2
-    X&      a( a_ ), a1( a1_ ), a2( a2_ );
+    X&      a( a_ ), &a1( a1_ ), &a2( a2_ );
     Y       b;
     C*      c;
 
@@ -94,9 +81,6 @@ int main()
     YY::const_pointer      u = YY::allocate(b, 69);     // size is arbitrary
     V                      v;
     XX::size_type          n = 42;                      // size matches p
-
-    // not in the standard, but useful for testing equality semantics
-    unbuggy::info_allocator<U, finicky_allocator> f1, f2;
 
     // [allocator.requirements] requires that \c std::allocator_traits<A>
     // define the following types, and that objects of these types support
@@ -209,16 +193,24 @@ int main()
             std::is_same<decltype(a1 == a2), bool>( )
           , "a1 == a2 must return bool");
     assert(a1 == a2);
-    assert(!(f1 == f2));
 
     // Expression: a1 != a2
     static_assert(
             std::is_same<decltype(a1 != a2), bool>( )
           , "a1 != a2 must return bool");
     assert((a1 != a2) == !(a1 == a2));
-    assert((f1 != f2) == !(f1 == f2));
 
+    // Expression: a == b
+    static_assert(
+            std::is_same<decltype(a == b), bool>( )
+          , "a == b must return bool");
     assert(a == b);
+
+    // Expression: a != b
+    static_assert(
+            std::is_same<decltype(a != b), bool>( )
+          , "a != b must return bool");
+    assert((a != b) == !(a == b));
 
     (void)v;                // Suppress unused variable warning.
     (void)c;
@@ -227,5 +219,4 @@ int main()
     (void)t;
     (void)s;
     (void)z;
-
 }
