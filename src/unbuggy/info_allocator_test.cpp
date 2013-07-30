@@ -1,6 +1,8 @@
 /// @file info_allocator_test.cpp
 ///
 /// @copyright Copyright 2013 Unbuggy Software LLC.  All rights reserved.
+///
+/// @cond
 
 #include "unbuggy/info_allocator.hpp"
 
@@ -16,9 +18,22 @@ int main()
 
     // Standard allocator requirements:
 
-    static_assert(
-            std::is_same<item, allocator_t::value_type>( )
-          , "value_type must match parameter T");
+#define CHECK_TYPE(t)                                               \
+    static_assert(                                                  \
+            std::is_same<                                           \
+                allocator_t::t                                      \
+              , std::allocator_traits<std::allocator<item> >::t>( ) \
+          , "type " #t " should match decorated allocator traits");
+
+    CHECK_TYPE( pointer            );
+    CHECK_TYPE( const_pointer      );
+    CHECK_TYPE( void_pointer       );
+    CHECK_TYPE( const_void_pointer );
+    CHECK_TYPE( value_type         );
+    CHECK_TYPE( size_type          );
+    CHECK_TYPE( difference_type    );
+
+#undef CHECK_TYPE
 
     // Expectations not required by the standard:
 
