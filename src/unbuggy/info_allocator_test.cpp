@@ -1,32 +1,35 @@
+/** @file info_allocator_test.cpp */
+
 #include "unbuggy/info_allocator.hpp"
 
 #include <memory>
 #include <vector>
 
-struct item {
-};
+/// Dummy type for use as a parameter to allocator class templates.
+struct item { };
 
 int main()
 {
-    // The allocator must be default constructible.
+    namespace unb = unbuggy;
 
-    unbuggy::info_allocator<item, std::allocator<item> > a;
+    // TODO Check [allocator.requirements].
 
-    // The allocator must be copyable.
+    // Check expectations not required by the standard.
 
-    auto b = a;
-    (void)b;    // Suppress "unused variable" warning.
+    unb::info_allocator<item> a;                    // default constructor
+    unb::info_allocator<item> b = a;                // copy constructor
+    unb::info_allocator<item> c( std::move(b) );    // move constructor
 
-    // The allocator must be constructible from a different allocator type (to
-    // wrap the supplied allocator).
+    a = c;                                          // copy assignment
+    a = std::move(c);                               // move assignment
 
-    std::allocator<item> c;
-    unbuggy::info_allocator<item, std::allocator<item> > d( c );
+    std::allocator<item> d;
+    unb::info_allocator<item> e( d );               // value constructor
+    unb::info_allocator<item> f( std::move(e) );    // value move constructor
 
-    (void)d;    // Suppress "unused variable" warning.
+    (void)f;                            // Suppress "unused variable" warning.
 
     // The allocator must provide sufficient functionality for use with
     // standard containers.
-
-    std::vector<item, unbuggy::info_allocator<item> > v(a);
+    //std::vector<item, unbuggy::info_allocator<item> > v(a);
 }

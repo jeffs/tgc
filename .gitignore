@@ -1,4 +1,4 @@
 *.html
 *.o
 *.so
-main
+*_test
