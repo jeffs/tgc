@@ -3,7 +3,7 @@ CPPFLAGS = -I..
 CXXFLAGS = -std=c++11 -pedantic -Wall -stdlib=libc++
 LDFLAGS = -stdlib=libc++
 
-.PHONY: clean test
+.PHONY: clean doc test
 
 test: info_allocator_test
 	./info_allocator_test
@@ -16,3 +16,6 @@ info_allocator_test: info_allocator_test.o info_allocator.o
 
 clean:
 	rm -f *.o *_test
+
+doc:
+	doxygen Doxyfile

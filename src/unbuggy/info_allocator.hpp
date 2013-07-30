@@ -1,4 +1,6 @@
-/** @file info_allocator.hpp */
+/// @file info_allocator.hpp
+///
+/// @copyright Copyright 2013 Unbuggy Software LLC.  All rights reserved.
 
 #ifndef INCLUDED_UNBUGGY_INFO_ALLOCATOR
 #define INCLUDED_UNBUGGY_INFO_ALLOCATOR
@@ -6,7 +8,6 @@
 #include <memory>   // allocator
 #include <utility>  // move
 
-/// Unbuggy Software LLC enterprise namespace
 namespace unbuggy {
 
 /// A memory allocator that records simple statistics.  Meets the requirements
@@ -25,6 +26,9 @@ namespace unbuggy {
 /// @param A the underlying allocator type
 ///
 /// @see INCITS-ISO-IEC-14882-2012 [allocator.requirements]
+//
+/// @todo Optionally annotate allocated memory with debug information.
+///
 template <typename T, typename A =std::allocator<T> >
 class info_allocator {
 
@@ -59,6 +63,6 @@ info_allocator<T, A>::info_allocator( A&& a )
   : m_a( std::move(a) )
 { }
 
-}  // close enterprise namespace
+}  // @namespace unbuggy
 
 #endif

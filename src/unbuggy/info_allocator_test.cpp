@@ -1,4 +1,6 @@
-/** @file info_allocator_test.cpp */
+/// @file info_allocator_test.cpp
+///
+/// @copyright Copyright 2013 Unbuggy Software LLC.  All rights reserved.
 
 #include "unbuggy/info_allocator.hpp"
 
