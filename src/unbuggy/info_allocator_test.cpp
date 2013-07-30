@@ -23,11 +23,8 @@
 // whether they are invoked by allocator methods.
 //
 struct T {
-
     static int constructor_count;
     static int destructor_count;
-
-    int* m_d;
 
     T( )
     {
@@ -44,7 +41,20 @@ int T::constructor_count;
 int T::destructor_count;
 
 class U { };                // any non-const, non-reference object type
-class C { };
+
+// C is any non-const, non-reference object type.  The following implementation
+// accepts a value in the constructor, useful for checking whether constructor
+// parameters are forwarded by allocator construct methods.  Additionally, C is
+// derived from T, so that C construction and destruction count toward
+// T::constructor_count and T::destructor_count.
+//
+struct C: T {
+    int value;
+
+    C( int v )
+     : value( v )
+    { }
+};
 
 struct V {                  // a type convertible to T
     operator T() const
@@ -212,8 +222,46 @@ int main()
           , "a != b must return bool");
     assert((a != b) == !(a == b));
 
-    (void)v;                // Suppress unused variable warning.
-    (void)c;
+    // Expression: X a1(a)
+    {
+        X a1( a );
+        assert(a1 == a);        // post: a1 == a
+    }
+
+    // Expression: X a(b)
+    {
+        X a( b );
+        assert(Y( a ) == b);    // post: Y(a) == b, a == X(b)
+        assert(a == X( b ));
+    }
+
+    // Expression X a1(move(a))
+    {
+        X a0( a );
+        X a1( std::move(a) );
+        assert(a1 == a0);       // post: a1 equals the prior value of a
+    }
+
+    // Expression: X a(move(b))
+    {
+        X b0( b );
+        X a( std::move(b) );
+        assert(a == b0);        // post: a equals the prior value of X(b)
+    }
+
+    // Expression: a.construct(c, args)
+    c = X::rebind<C>::other( a ).allocate(1);
+    XX::construct(a, c, 42);
+    assert(T::constructor_count == 1);
+    assert(T::destructor_count == 0);
+    assert(c->value == 42);
+
+    // Expression: a.destroy(c)
+    XX::destroy(a, c);
+    assert(T::constructor_count == 1);
+    assert(T::destructor_count == 1);
+
+    (void)v;                    // Suppress unused variable warning.
     (void)w;
     (void)r;
     (void)t;
