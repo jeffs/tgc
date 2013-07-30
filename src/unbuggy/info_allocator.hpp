@@ -5,7 +5,6 @@
 #ifndef INCLUDED_UNBUGGY_INFO_ALLOCATOR
 #define INCLUDED_UNBUGGY_INFO_ALLOCATOR
 
-#include <cassert>  // assert
 #include <memory>   // allocator, allocator_traits
 #include <utility>  // move
 
@@ -140,8 +139,6 @@ info_allocator<T, A>::allocate(size_type n, const_pointer u)
 template <typename T, typename A>
 void info_allocator<T, A>::deallocate(pointer p, size_type n)
 {
-    assert(m_deallocate_calls < m_allocate_calls);
-
     ++m_deallocate_calls;
 
     m_count_allocated_now -= n;

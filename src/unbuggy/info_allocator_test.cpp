@@ -6,6 +6,7 @@
 
 #include "unbuggy/info_allocator.hpp"
 
+#include <cassert>      // assert
 #include <type_traits>  // is_same, static_assert
 
 int main()
