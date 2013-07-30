@@ -9,10 +9,42 @@
 #include <cassert>      // assert
 #include <type_traits>  // is_same, static_assert
 
-// [allocator.requirements] uses the following terminology:
+// The C++ Standard 14882-2012 specifies, in [allocator.requirements], a number
+// of requirements of standard allocators.  The requirements are explained
+// using several predefined types and variable names.  In the following test
+// code, types and variables matching those used in the standard requirements
+// are defined, and requirements are tested in the order expressed by the
+// standard.  These tests are superficial, as they check only the bare minimum
+// requirements of an allocator.allocator.allocator; more meaningful tests
+// follow the standard requirements, in the latter portion of this test driver.
 
-class T { };                // any non-const, non-reference
-class U { };                // object type
+// T is any non-const, non-reference object type.  The following implementation
+// supports optional side effects in the constructor and destructor, useful for
+// checking whether they are invoked by allocator methods.
+//
+struct T {
+
+    int* m_d;
+
+    T( )
+      : m_d( )
+    { }
+
+    T( int* c, int* d )
+        // Increments *c on construction, and *d on destruction.
+      : m_d( d )
+    {
+        ++*c;
+    }
+
+    ~T()
+    {
+        if (m_d)
+            ++*d;
+    }
+};
+
+class U { };                // any non-const, non-reference object type
 class C { };
 
 struct V {                  // a type convertible to T
