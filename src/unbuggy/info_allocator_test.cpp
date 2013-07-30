@@ -12,9 +12,7 @@
 int main()
 {
 
-    struct item { };                    // dummy value type for allocator
-
-    typedef unbuggy::info_allocator<item> allocator_t;
+    typedef unbuggy::info_allocator<int> allocator_t;
                                         // type to be tested
 
     typedef std::allocator_traits<allocator_t> traits_t;
@@ -26,7 +24,7 @@ int main()
     allocator_t b = a;                  // copy constructor
     allocator_t c( std::move(b) );      // move constructor
 
-    std::allocator<item> d;
+    std::allocator<int> d;
     allocator_t e( d );                 // value constructor
     allocator_t f( std::move(e) );      // value move constructor
 
@@ -39,7 +37,7 @@ int main()
     static_assert(                                                  \
             std::is_same<                                           \
                 allocator_t::t                                      \
-              , std::allocator_traits<std::allocator<item> >::t>( ) \
+              , std::allocator_traits<std::allocator<int> >::t>( )  \
           , "type " #t " should match decorated allocator traits");
 
     CHECK_TYPE( pointer            )
@@ -51,6 +49,12 @@ int main()
     CHECK_TYPE( difference_type    )
 
 #undef CHECK_TYPE
+
+    static_assert(
+            std::is_same<
+                unbuggy::info_allocator<int>::rebind<double>::other
+              , unbuggy::info_allocator<double, std::allocator<double> > >( )
+          , "rebind must return the correct allocator type");
 
     traits_t::size_type n = 42;                 // arbitrary number of objects
 

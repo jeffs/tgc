@@ -48,7 +48,11 @@ class info_allocator {
     /// Provides a typedef for an \c info_allocator of objects of type \c U.
     ///
     template <typename U>
-    struct rebind: A::template rebind<U> { };
+    struct rebind {
+        typedef
+            unbuggy::info_allocator<U, typename A::template rebind<U>::other>
+            other;                      ///< rebound allocator type
+    };
 
   private:
 
