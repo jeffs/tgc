@@ -76,7 +76,11 @@ class info_allocator {
         ///< Copies \a a.
 
     template <typename U>
-    explicit info_allocator( unbuggy::info_allocator<U, A> const& a );
+    explicit info_allocator(
+            unbuggy::info_allocator<
+                U
+              , typename A::template rebind<U>::other
+            > const& a);
         ///< Converts and decorates the underlying allocator of \a a.  Note
         /// that \a a has a type similar to this, except that \a a allocates
         /// objects of type \a U rather than type \c T.  Also note that this
@@ -127,8 +131,8 @@ bool operator!=(
 
 template <typename T, typename A, typename U>
 bool operator==(
-        info_allocator<T, A> const& a
-      , info_allocator<T, U> const& b);
+        info_allocator<T, A> const&                                     a
+      , info_allocator<U, typename A::template rebind<U>::other> const& b);
     ///< Returns \c true if \a a and \a b have the same value.  The allocators
     /// have the same value if \a a has the same value as the result of
     /// explicitly converting \a b to the type of \a a.  If allocators compare
@@ -138,7 +142,7 @@ bool operator==(
 template <typename T, typename A, typename U>
 bool operator!=(
         info_allocator<T, A> const& a
-      , info_allocator<T, U> const& b);
+      , info_allocator<U, typename A::template rebind<U>::other> const& b);
     ///< Returns \c true if \a a and \a b do not have the same value.
     /// Equivalent to <code>!(a == b)</code>.
 
@@ -166,8 +170,12 @@ info_allocator<T, A>::info_allocator( info_allocator const& a )
 
 template <typename T, typename A>
 template <typename U>
-info_allocator<T, A>::info_allocator( unbuggy::info_allocator<U, A> const& a )
-  : m_a( a.m_a )
+info_allocator<T, A>::info_allocator(
+        unbuggy::info_allocator<
+            U
+          , typename A::template rebind<U>::other
+        > const& a)
+  : m_a( a.alloc() )
   , m_allocate_calls( )
   , m_deallocate_calls( )
   , m_count_allocated_all( )
@@ -250,16 +258,19 @@ bool unbuggy::operator!=(
 
 template <typename T, typename A, typename U>
 bool unbuggy::operator==(
-        info_allocator<T, A> const& a
-      , info_allocator<T, U> const& b)
+        info_allocator<T, A> const&                                  a
+      , info_allocator<U, typename A::template rebind<U>::other> const& b)
 {
-    return a == typename info_allocator<T, U>::template rebind<T>::other( b );
+    return a == typename info_allocator<
+        U
+      , typename A::template rebind<U>::other
+    >::template rebind<T>::other( b );
 }
 
 template <typename T, typename A, typename U>
 bool unbuggy::operator!=(
-        info_allocator<T, A> const& a
-      , info_allocator<T, U> const& b)
+        info_allocator<T, A> const&                                  a
+      , info_allocator<U, typename A::template rebind<U>::other> const& b)
 {
     return !(a == b);
 }

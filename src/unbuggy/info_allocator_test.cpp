@@ -19,30 +19,29 @@
 // follow the standard requirements, in the latter portion of this test driver.
 
 // T is any non-const, non-reference object type.  The following implementation
-// supports optional side effects in the constructor and destructor, useful for
-// checking whether they are invoked by allocator methods.
+// supports side effects in the constructor and destructor, useful for checking
+// whether they are invoked by allocator methods.
 //
 struct T {
+
+    static int constructor_count;
+    static int destructor_count;
 
     int* m_d;
 
     T( )
-      : m_d( )
-    { }
-
-    T( int* c, int* d )
-        // Increments *c on construction, and *d on destruction.
-      : m_d( d )
     {
-        ++*c;
+        ++constructor_count;
     }
 
     ~T()
     {
-        if (m_d)
-            ++*d;
+        ++destructor_count;
     }
 };
+
+int T::constructor_count;
+int T::destructor_count;
 
 class U { };                // any non-const, non-reference object type
 class C { };
@@ -60,6 +59,19 @@ typedef unbuggy::info_allocator<U> Y;
 typedef std::allocator_traits<X> XX;
 typedef std::allocator_traits<Y> YY;
 
+// In addition to the above types, the following allocator type (not mentioned
+// in the standard) is useful for checking allocator equality operations.
+
+// A simple allocator type of which distinct instances are never equal.
+//
+struct finicky_allocator: std::allocator<U> { };
+
+bool operator==(finicky_allocator const& fa1, finicky_allocator const& fa2)
+    // Returns true only if fa1 and fa2 are the same object.
+{
+    return &fa1 == &fa2;
+}
+
 int main()
 {
     // [allocator.requirements] terminology, continued
@@ -72,7 +84,7 @@ int main()
 
     assert(a1 == a);        // prerequisite for initialization of p
 
-    XX::pointer            p = a1.allocate(42);         // size is arbitrary
+    XX::pointer            p = a1.allocate(42);         // size matches n
     XX::const_pointer      q = p;
     XX::void_pointer       w = p;
     XX::const_void_pointer z = q;
@@ -81,7 +93,10 @@ int main()
     T const&               s = *q;
     YY::const_pointer      u = YY::allocate(b, 69);     // size is arbitrary
     V                      v;
-    XX::size_type          n = 76;                      // value is arbitrary
+    XX::size_type          n = 42;                      // size matches p
+
+    // not in the standard, but useful for testing equality semantics
+    unbuggy::info_allocator<U, finicky_allocator> f1, f2;
 
     // [allocator.requirements] requires that \c std::allocator_traits<A>
     // define the following types, and that objects of these types support
@@ -161,16 +176,56 @@ int main()
     // Expression: static_cast<X::const_pointer>(z)
     assert(static_cast<X::const_pointer>(z) == q);
 
+    // Expression: a.allocate(n) - allocates, but does not construct
+    static_assert(
+            std::is_same<decltype(a.allocate(n)), X::pointer>( )
+          , "a.allocate(n) must return X::pointer");
+    T::constructor_count = 0;
+    T::destructor_count = 0;
+    a.allocate(n);
+    assert(T::constructor_count == 0);
+    assert(T::destructor_count == 0);
+
+    // Expression: a.allocate(n, u)
+    static_assert(
+            std::is_same<decltype(a.allocate(n, u)), X::pointer>( )
+          , "a.allocate(n, u) must return X::pointer");
+    a.allocate(n, u);
+    assert(T::constructor_count == 0);
+    assert(T::destructor_count == 0);
+
+    // Expression: a.deallocate(p, n)
+    a.deallocate(p, n);
+    assert(T::constructor_count == 0);
+    assert(T::destructor_count == 0);
+
+    // Expression: a.max_size()
+    static_assert(
+            std::is_same<decltype(a.max_size()), X::size_type>( )
+          , "a.max_size() must return X::size_type");
+
+    // Expression: a1 == a2
+    static_assert(
+            std::is_same<decltype(a1 == a2), bool>( )
+          , "a1 == a2 must return bool");
+    assert(a1 == a2);
+    assert(!(f1 == f2));
+
+    // Expression: a1 != a2
+    static_assert(
+            std::is_same<decltype(a1 != a2), bool>( )
+          , "a1 != a2 must return bool");
+    assert((a1 != a2) == !(a1 == a2));
+    assert((f1 != f2) == !(f1 == f2));
+
+    assert(a == b);
+
     (void)v;                // Suppress unused variable warning.
     (void)c;
     (void)w;
-    (void)u;
-    (void)n;
     (void)r;
     (void)t;
     (void)s;
     (void)z;
 
-    YY::deallocate(b, const_cast<YY::pointer>(u), 69);
-    a1.deallocate(p, 42);
 }
