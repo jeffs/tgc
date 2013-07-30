@@ -88,7 +88,7 @@ class info_allocator {
     explicit info_allocator( A&& a );
         ///< Decorates an allocator moved from `a`.
 
-    pointer allocate(size_type n, const_pointer u =nullptr);
+    pointer allocate(size_type n, const_void_pointer u =nullptr);
         ///< Returns space for \a n objects of type \c T, passing \a u as a
         /// hint to the underlying allocator, or throws an exception if the
         /// space cannot be allocated.
@@ -197,7 +197,7 @@ info_allocator<T, A>::info_allocator( A&& a )
 
 template <typename T, typename A>
 typename info_allocator<T, A>::pointer
-info_allocator<T, A>::allocate(size_type n, const_pointer u)
+info_allocator<T, A>::allocate(size_type n, const_void_pointer u)
 {
     pointer r = m_a.allocate(n, u);  // may throw
 
