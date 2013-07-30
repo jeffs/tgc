@@ -16,6 +16,22 @@ int main()
     typedef unbuggy::info_allocator<item> allocator_t;
                                         // type to be tested
 
+    typedef std::allocator_traits<allocator_t> traits_t;
+                                        // traits of tested allocator type
+
+    // Expectations not required by the standard:
+
+    allocator_t a;                      // default constructor
+    allocator_t b = a;                  // copy constructor
+    allocator_t c( std::move(b) );      // move constructor
+
+    std::allocator<item> d;
+    allocator_t e( d );                 // value constructor
+    allocator_t f( std::move(e) );      // value move constructor
+
+    f = c;                              // copy assignment
+    f = std::move(c);                   // move assignment
+
     // Standard allocator requirements:
 
 #define CHECK_TYPE(t)                                               \
@@ -35,16 +51,9 @@ int main()
 
 #undef CHECK_TYPE
 
-    // Expectations not required by the standard:
+    traits_t::size_type n = 42;                 // arbitrary number of objects
 
-    allocator_t a;                      // default constructor
-    allocator_t b = a;                  // copy constructor
-    allocator_t c( std::move(b) );      // move constructor
+    traits_t::pointer p = a.allocate(n);                // a.allocate(n);
+    p = a.allocate(n, traits_t::const_pointer( p ));    // a.allocate(n, u);
 
-    std::allocator<item> d;
-    allocator_t e( d );                 // value constructor
-    allocator_t f( std::move(e) );      // value move constructor
-
-    f = c;                              // copy assignment
-    f = std::move(c);                   // move assignment
 }

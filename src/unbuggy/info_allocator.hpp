@@ -18,7 +18,6 @@ namespace unbuggy {
 ///
 /// - number of allocations
 /// - number of deallocations
-/// - amount of allocated (but not de-allocated) memory
 /// - total amount of allocated memory (regardless of whether deallocated)
 /// - maximum amount of outstanding memory from this allocator at any time
 ///
@@ -32,30 +31,37 @@ namespace unbuggy {
 template <typename T, typename A =std::allocator<T> >
 class info_allocator {
 
-    typedef typename std::allocator_traits<A> a_traits_t;
-            // convenient name for use in later type definitions
-
-    A m_a;  // decorated allocator
-
   public:
 
-    /// Type definitions to match the underlying allocator traits. 
+    /// Type definitions to match the underlying allocator traits.
     //@{
-    typedef typename a_traits_t::pointer            pointer;
-    typedef typename a_traits_t::const_pointer      const_pointer;
-    typedef typename a_traits_t::void_pointer       void_pointer;
-    typedef typename a_traits_t::const_void_pointer const_void_pointer;
-    typedef typename a_traits_t::value_type         value_type;
-    typedef typename a_traits_t::size_type          size_type;
-    typedef typename a_traits_t::difference_type    difference_type;
+    typedef typename std::allocator_traits<A>::pointer                 pointer;
+    typedef typename std::allocator_traits<A>::const_pointer     const_pointer;
+    typedef typename std::allocator_traits<A>::void_pointer       void_pointer;
+    typedef typename std::allocator_traits<A>::const_void_pointer
+                                                            const_void_pointer;
+    typedef typename std::allocator_traits<A>::value_type           value_type;
+    typedef typename std::allocator_traits<A>::size_type             size_type;
+    typedef typename std::allocator_traits<A>::difference_type
+                                                               difference_type;
     //@}
 
-    /// A typedef template for \c info_allocator<U>.
+    /// Provides a typedef for an \c info_allocator of objects of type \c U.
     ///
     template <typename U>
-    struct rebind {
-        typedef unbuggy::info_allocator<U> other;  ///< rebound allocator type
-    };
+    struct rebind: A::template rebind<U> { };
+
+  private:
+
+    A m_a;                              // decorated allocator
+
+    size_type m_count_allocated_now;    // number of outstanding objects
+    size_type m_count_allocated_max;    // most outstanding objects ever seen
+    size_type m_count_allocated_all;    // total number of objects allocated
+    size_type m_allocate_calls;         // number of calls to \c allocate
+    size_type m_deallocate_calls;       // number of calls to \c deallocate
+
+  public:
 
     info_allocator( );
         ///< Decorates a default-constructed instance of `A`.
@@ -66,8 +72,9 @@ class info_allocator {
     explicit info_allocator( A&& a );
         ///< Decorates an allocator moved from `a`.
 
-    pointer allocate(size_type n);
-        ///< Returns space for \a n objects of type \c T.
+    pointer allocate(size_type n, const_pointer u =nullptr);
+        ///< Returns space for \a n objects of type \c T, passing \a u as a
+        /// hint to the underlying allocator.
 };
 
 template <typename T, typename A>
@@ -84,6 +91,20 @@ template <typename T, typename A>
 info_allocator<T, A>::info_allocator( A&& a )
   : m_a( std::move(a) )
 { }
+
+template <typename T, typename A>
+typename info_allocator<T, A>::pointer
+info_allocator<T, A>::allocate(size_type n, const_pointer u)
+{
+    m_count_allocated_now += n;
+    m_count_allocated_all += n;
+    m_allocate_calls      += 1;
+
+    if (m_count_allocated_now > m_count_allocated_max)
+        m_count_allocated_max = m_count_allocated_now;
+
+    return m_a.allocate(n, u);
+}
 
 }  // \namespace unbuggy
 
