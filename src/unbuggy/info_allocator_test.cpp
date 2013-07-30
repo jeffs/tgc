@@ -2,34 +2,32 @@
 
 #include "unbuggy/info_allocator.hpp"
 
-#include <memory>
-#include <vector>
-
-/// Dummy type for use as a parameter to allocator class templates.
-struct item { };
+#include <type_traits>  // is_same, static_assert
 
 int main()
 {
-    namespace unb = unbuggy;
 
-    // TODO Check [allocator.requirements].
+    struct item { };                    // dummy value type for allocator
 
-    // Check expectations not required by the standard.
+    typedef unbuggy::info_allocator<item> allocator_t;
+                                        // type to be tested
 
-    unb::info_allocator<item> a;                    // default constructor
-    unb::info_allocator<item> b = a;                // copy constructor
-    unb::info_allocator<item> c( std::move(b) );    // move constructor
+    // Standard allocator requirements:
 
-    a = c;                                          // copy assignment
-    a = std::move(c);                               // move assignment
+    static_assert(
+            std::is_same<item, allocator_t::value_type>( )
+          , "value_type must match parameter T");
+
+    // Expectations not required by the standard:
+
+    allocator_t a;                      // default constructor
+    allocator_t b = a;                  // copy constructor
+    allocator_t c( std::move(b) );      // move constructor
 
     std::allocator<item> d;
-    unb::info_allocator<item> e( d );               // value constructor
-    unb::info_allocator<item> f( std::move(e) );    // value move constructor
+    allocator_t e( d );                 // value constructor
+    allocator_t f( std::move(e) );      // value move constructor
 
-    (void)f;                            // Suppress "unused variable" warning.
-
-    // The allocator must provide sufficient functionality for use with
-    // standard containers.
-    //std::vector<item, unbuggy::info_allocator<item> > v(a);
+    f = c;                              // copy assignment
+    f = std::move(c);                   // move assignment
 }
