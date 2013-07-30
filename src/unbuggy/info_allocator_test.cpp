@@ -7,6 +7,7 @@
 #include "unbuggy/info_allocator.hpp"
 
 #include <cassert>      // assert
+#include <iostream>     // XXX
 #include <type_traits>  // is_same, static_assert
 
 // The C++ Standard 14882-2012 specifies, in [allocator.requirements], a number
@@ -260,6 +261,8 @@ int main()
     XX::destroy(a, c);
     assert(T::constructor_count == 1);
     assert(T::destructor_count == 1);
+
+    std::cout << sizeof(a) << '\n';
 
     (void)v;                    // Suppress unused variable warning.
     (void)w;

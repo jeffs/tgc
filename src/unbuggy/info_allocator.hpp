@@ -31,7 +31,7 @@ namespace unbuggy {
 /// \todo Optionally annotate allocated memory with debug information.
 ///
 template <typename T, typename A =std::allocator<T> >
-class info_allocator {
+class info_allocator: A {
 
   public:
 
@@ -60,8 +60,6 @@ class info_allocator {
 
   private:
 
-    A m_a;                              // decorated allocator
-
     size_type m_allocate_calls;         // number of calls to \c allocate
     size_type m_deallocate_calls;       // number of calls to \c deallocate
 
@@ -70,6 +68,8 @@ class info_allocator {
     size_type m_count_allocated_now;    // number of currently live objects
 
   public:
+
+    using A::max_size;
 
     info_allocator( );
         ///< Decorates a default-constructed instance of `A`.
@@ -164,7 +164,7 @@ bool operator!=(
 
 template <typename T, typename A>
 info_allocator<T, A>::info_allocator( )
-  : m_a( )
+  : A( )
   , m_allocate_calls( )
   , m_deallocate_calls( )
   , m_count_allocated_all( )
@@ -174,7 +174,7 @@ info_allocator<T, A>::info_allocator( )
 
 template <typename T, typename A>
 info_allocator<T, A>::info_allocator( info_allocator const& a )
-  : m_a( a.m_a )
+  : A( a.alloc() )
   , m_allocate_calls( )
   , m_deallocate_calls( )
   , m_count_allocated_all( )
@@ -189,7 +189,7 @@ info_allocator<T, A>::info_allocator(
             U
           , typename std::allocator_traits<A>::template rebind_alloc<U>
         > const& a)
-  : m_a( a.alloc() )
+  : A( a.alloc() )
   , m_allocate_calls( )
   , m_deallocate_calls( )
   , m_count_allocated_all( )
@@ -199,7 +199,7 @@ info_allocator<T, A>::info_allocator(
 
 template <typename T, typename A>
 info_allocator<T, A>::info_allocator( A const& a )
-  : m_a( a )
+  : A( a )
   , m_allocate_calls( )
   , m_deallocate_calls( )
   , m_count_allocated_all( )
@@ -209,7 +209,7 @@ info_allocator<T, A>::info_allocator( A const& a )
 
 template <typename T, typename A>
 info_allocator<T, A>::info_allocator( A&& a )
-  : m_a( std::move(a) )
+  : A( std::move(a) )
   , m_allocate_calls( )
   , m_deallocate_calls( )
   , m_count_allocated_all( )
@@ -221,7 +221,7 @@ template <typename T, typename A>
 typename info_allocator<T, A>::pointer
 info_allocator<T, A>::allocate(size_type n, const_void_pointer u)
 {
-    pointer r = m_a.allocate(n, u);  // may throw
+    pointer r = A::allocate(n, u);  // may throw
 
     m_count_allocated_all += n;
 
@@ -242,14 +242,7 @@ void info_allocator<T, A>::deallocate(pointer p, size_type n)
 
     m_count_allocated_now -= n;
 
-    m_a.deallocate(p, n);   // must not throw
-}
-
-template <typename T, typename A>
-typename info_allocator<T, A>::size_type
-info_allocator<T, A>::max_size() const
-{
-    return m_a.max_size();
+    A::deallocate(p, n);   // must not throw
 }
 
 }  /// \namespace unbuggy
@@ -304,13 +297,13 @@ bool unbuggy::operator!=(
 template <typename T, typename A>
 A& unbuggy::info_allocator<T, A>::alloc()
 {
-    return m_a;
+    return *this;
 }
 
 template <typename T, typename A>
 A const& unbuggy::info_allocator<T, A>::alloc() const
 {
-    return m_a;
+    return *this;
 }
 
 #endif
