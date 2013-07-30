@@ -9,36 +9,59 @@
 #include <cassert>      // assert
 #include <type_traits>  // is_same, static_assert
 
+// [allocator.requirements] uses the following terminology:
+
+class T { };                // any non-const, non-reference
+class U { };                // object type
+class C { };
+
+struct V {                  // a type convertible to T
+    operator T() const
+    {
+        return T( );
+    }
+};
+
+typedef unbuggy::info_allocator<T> X;
+typedef unbuggy::info_allocator<U> Y;
+
+typedef std::allocator_traits<X> XX;
+typedef std::allocator_traits<Y> YY;
+
 int main()
 {
+    // [allocator.requirements] terminology, continued
 
-    typedef unbuggy::info_allocator<int> allocator_t;
-                                        // type to be tested
+    T const& t = T( );
+    X       a_, a1_, a2_;   // initializers for a, a1, and a2
+    X&      a( a_ ), a1( a1_ ), a2( a2_ );
+    Y       b;
+    C*      c;
 
-    typedef std::allocator_traits<allocator_t> traits_t;
-                                        // traits of tested allocator type
+    assert(a1 == a);        // prerequisite for initialization of p
 
-    // Expectations not required by the standard:
+    XX::pointer            p = a1.allocate(42);         // size is arbitrary
+    XX::const_pointer      q = p;
+    XX::void_pointer       w = p;
+    XX::const_void_pointer z = q;
 
-    allocator_t a;                      // default constructor
-    allocator_t b = a;                  // copy constructor
-    allocator_t c( std::move(b) );      // move constructor
+    T&                     r = *p;
+    T const&               s = *q;
+    YY::const_pointer      u = YY::allocate(b, 69);     // size is arbitrary
+    V                      v;
+    XX::size_type          n = 76;                      // value is arbitrary
 
-    std::allocator<int> d;
-    allocator_t e( d );                 // value constructor
-    allocator_t f( std::move(e) );      // value move constructor
+    // [allocator.requirements] requires that \c std::allocator_traits<A>
+    // define the following types, and that objects of these types support
+    // various intuitive syntax.  This test simply checks that the types match
+    // those for the underlying standard allocator type.
 
-    f = c;                              // copy assignment
-    f = std::move(c);                   // move assignment
-
-    // Standard allocator requirements:
-
-#define CHECK_TYPE(t)                                               \
+#define CHECK_TYPE(type)                                            \
     static_assert(                                                  \
             std::is_same<                                           \
-                allocator_t::t                                      \
-              , std::allocator_traits<std::allocator<int> >::t>( )  \
-          , "type " #t " should match decorated allocator traits");
+                XX::type                                            \
+              , std::allocator_traits<std::allocator<T> >::type>( ) \
+          , "type " #type " should match decorated allocator traits");
 
     CHECK_TYPE( pointer            )
     CHECK_TYPE( const_pointer      )
@@ -50,20 +73,22 @@ int main()
 
 #undef CHECK_TYPE
 
+    (void)X::const_pointer( X::pointer( ) );
+    (void)X::void_pointer(  X::pointer( ) );
+
+    (void)v;                // Suppress unused variable warning.
+    (void)c;
+    (void)w;
+    (void)u;
+    (void)n;
+    (void)r;
+    (void)t;
+    (void)s;
+    (void)z;
+
     static_assert(
             std::is_same<
                 unbuggy::info_allocator<int>::rebind<double>::other
               , unbuggy::info_allocator<double, std::allocator<double> > >( )
           , "rebind must return the correct allocator type");
-
-    traits_t::size_type n = 42;                 // arbitrary number of objects
-
-    traits_t::pointer p = a.allocate(n);        // a.allocate(n);
-    traits_t::const_pointer u = p;
-    traits_t::pointer q = a.allocate(n, u);     // a.allocate(n, u);
-
-    a.deallocate(q, n);
-    a.deallocate(p, n);                         // a.deallocate(p, n);
-
-    assert(a.max_size() == d.max_size());       // a.max_size();
 }
