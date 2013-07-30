@@ -70,6 +70,9 @@ typedef unbuggy::info_allocator<U> Y;
 typedef std::allocator_traits<X> XX;
 typedef std::allocator_traits<Y> YY;
 
+typedef std::allocator_traits<std::allocator<T> > A;
+    // a convenience for testing info_allocator
+
 int main()
 {
     // [allocator.requirements] terminology, continued
@@ -272,7 +275,31 @@ int main()
           , "a.select_on_container_copy_construction() must return X");
     assert(a.select_on_container_copy_construction() == a);
 
-    (void)v;                    // Suppress unused variable warning.
+    // Expression: X::propagate_on_container_copy_assignment
+    static_assert(
+            std::is_same<
+                X::propagate_on_container_copy_assignment
+              , A::propagate_on_container_copy_assignment
+            >::value
+          , "X must expose propagate_on_container_copy_assignment");
+
+    // Expression: X::propagate_on_container_move_assignment
+    static_assert(
+            std::is_same<
+                X::propagate_on_container_move_assignment
+              , A::propagate_on_container_move_assignment
+            >::value
+          , "X must expose propagate_on_container_copy_assignment");
+
+    // Expression: X::propagate_on_container_swap
+    static_assert(
+            std::is_same<
+                X::propagate_on_container_swap
+              , A::propagate_on_container_swap
+            >::value
+          , "X must expose propagate_on_container_swap");
+
+    (void)v;                    // Suppress unused variable warnings.
     (void)w;
     (void)r;
     (void)t;

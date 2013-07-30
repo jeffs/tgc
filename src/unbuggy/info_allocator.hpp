@@ -35,16 +35,26 @@ class info_allocator: A {
 
   public:
 
+    typedef std::allocator_traits<A> alloc_traits;
+        //< allocator traits of type \c A
+
     /// Type definitions to match the underlying allocator traits.
     //@{
-    typedef typename std::allocator_traits<A>::pointer                 pointer;
-    typedef typename std::allocator_traits<A>::const_pointer     const_pointer;
-    typedef typename std::allocator_traits<A>::void_pointer       void_pointer;
-    typedef typename std::allocator_traits<A>::const_void_pointer
-                                                            const_void_pointer;
-    typedef typename std::allocator_traits<A>::value_type           value_type;
-    typedef typename std::allocator_traits<A>::size_type             size_type;
-    typedef typename std::allocator_traits<A>::difference_type difference_type;
+
+    typedef typename alloc_traits::pointer                       pointer;
+    typedef typename alloc_traits::const_pointer           const_pointer;
+    typedef typename alloc_traits::void_pointer             void_pointer;
+    typedef typename alloc_traits::const_void_pointer const_void_pointer;
+    typedef typename alloc_traits::value_type                 value_type;
+    typedef typename alloc_traits::size_type                   size_type;
+    typedef typename alloc_traits::difference_type       difference_type;
+
+    typedef typename alloc_traits::propagate_on_container_copy_assignment
+                                   propagate_on_container_copy_assignment;
+    typedef typename alloc_traits::propagate_on_container_move_assignment
+                                   propagate_on_container_move_assignment;
+    typedef typename alloc_traits::propagate_on_container_swap
+                                   propagate_on_container_swap;
     //@}
 
     /// Provides a typedef for an \c info_allocator of objects of type \c U.
@@ -113,6 +123,7 @@ class info_allocator: A {
         ///< Returns the decorated allocator.
 
     info_allocator select_on_container_copy_construction() const;
+
 };
 
 template <typename T, typename A>
