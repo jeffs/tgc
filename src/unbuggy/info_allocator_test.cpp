@@ -73,8 +73,61 @@ int main()
 
 #undef CHECK_TYPE
 
-    (void)X::const_pointer( X::pointer( ) );
-    (void)X::void_pointer(  X::pointer( ) );
+    // Table 28 - Allocator requirements
+
+    // Expression: X::const_pointer
+    (void)X::const_pointer(      X::pointer( ) );
+
+    // Expression: X::void_pointer, Y::void_pointer
+    (void)X::void_pointer(       X::pointer( ) );
+    static_assert(
+            std::is_same<X::void_pointer, Y::void_pointer>( )
+          , "X::void_pointer and Y::void_pointer must be the same type.");
+
+    // Expression: X::const_void_pointer, Y::const_void_pointer
+    (void)X::const_void_pointer( X::pointer( )       );
+    (void)X::const_void_pointer( X::const_pointer( ) );
+    (void)X::const_void_pointer( X::void_pointer( )  );
+    static_assert(
+            std::is_same<X::const_void_pointer, Y::const_void_pointer>( )
+          , "X::const_void_pointer and Y::const_void_pointer must be the same"
+            " type");
+
+    // Expression: X::value_type
+    static_assert(
+            std::is_same<X::value_type, T>( )
+          , "X::value_type must be identical to T");
+
+    // Expression: X::size_type - sufficiently wide unsigned integer type
+
+    // Expression: X::difference_type - sufficiently wide signed integer type
+
+    // Expression: typename X::template rebind<U>::other
+    static_assert(
+            std::is_same<typename X::template rebind<U>::other, Y>( )
+          , "X::rebind<U> must return Y");
+
+    static_assert(
+            std::is_same<decltype(*p), T&>( )
+          , "*p must be of type T&");
+
+    static_assert(
+            std::is_same<decltype(*q), T const&>( )
+          , "*q must be of type const T&");
+
+    static_assert(
+            std::is_same<decltype(*q), T const&>( )
+          , "*q must be of type const T&");
+
+    // Expression: p->m - has type T::m
+
+    // Expression: q->m - has type T::m
+
+    // Expression: static_cast<X::pointer>(w)
+    assert(static_cast<X::pointer>(w) == p);
+
+    // Expression: static_cast<X::const_pointer>(z)
+    assert(static_cast<X::const_pointer>(z) == q);
 
     (void)v;                // Suppress unused variable warning.
     (void)c;
@@ -86,9 +139,6 @@ int main()
     (void)s;
     (void)z;
 
-    static_assert(
-            std::is_same<
-                unbuggy::info_allocator<int>::rebind<double>::other
-              , unbuggy::info_allocator<double, std::allocator<double> > >( )
-          , "rebind must return the correct allocator type");
+    YY::deallocate(b, const_cast<YY::pointer>(u), 69);
+    a1.deallocate(p, 42);
 }
