@@ -53,7 +53,12 @@ int main()
 
     traits_t::size_type n = 42;                 // arbitrary number of objects
 
-    traits_t::pointer p = a.allocate(n);                // a.allocate(n);
-    p = a.allocate(n, traits_t::const_pointer( p ));    // a.allocate(n, u);
+    traits_t::pointer p = a.allocate(n);        // a.allocate(n);
+    traits_t::const_pointer u = p;
+    traits_t::pointer q = a.allocate(n, u);     // a.allocate(n, u);
 
+    a.deallocate(q, n);
+    a.deallocate(p, n);                         // a.deallocate(p, n);
+
+    assert(a.max_size() == d.max_size());       // a.max_size();
 }

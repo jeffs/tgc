@@ -5,6 +5,7 @@
 #ifndef INCLUDED_UNBUGGY_INFO_ALLOCATOR
 #define INCLUDED_UNBUGGY_INFO_ALLOCATOR
 
+#include <cassert>  // assert
 #include <memory>   // allocator, allocator_traits
 #include <utility>  // move
 
@@ -55,11 +56,12 @@ class info_allocator {
 
     A m_a;                              // decorated allocator
 
-    size_type m_count_allocated_now;    // number of outstanding objects
-    size_type m_count_allocated_max;    // most outstanding objects ever seen
-    size_type m_count_allocated_all;    // total number of objects allocated
     size_type m_allocate_calls;         // number of calls to \c allocate
     size_type m_deallocate_calls;       // number of calls to \c deallocate
+
+    size_type m_count_allocated_all;    // total number of objects allocated
+    size_type m_count_allocated_max;    // most simultaneous live objects seen
+    size_type m_count_allocated_now;    // number of currently live objects
 
   public:
 
@@ -74,38 +76,86 @@ class info_allocator {
 
     pointer allocate(size_type n, const_pointer u =nullptr);
         ///< Returns space for \a n objects of type \c T, passing \a u as a
-        /// hint to the underlying allocator.
+        /// hint to the underlying allocator, or throws an exception if the
+        /// space cannot be allocated.
+
+    void deallocate(pointer p, size_type n);
+        ///< Frees space for \a n objects beginning at address \p.  The
+        /// behavior is undefined unless \a p was returned by a previous call
+        /// to \c allocate exactly \a n objects.
+
+    size_type max_size() const;
+        /// Returns the largest value that can meaningfully be passed to \c
+        /// allocate.  Note that \c allocate is not guaranteed to succeed.
 };
 
 template <typename T, typename A>
 info_allocator<T, A>::info_allocator( )
   : m_a( )
+  , m_allocate_calls( )
+  , m_deallocate_calls( )
+  , m_count_allocated_all( )
+  , m_count_allocated_max( )
+  , m_count_allocated_now( )
 { }
 
 template <typename T, typename A>
 info_allocator<T, A>::info_allocator( A const& a )
   : m_a( a )
+  , m_allocate_calls( )
+  , m_deallocate_calls( )
+  , m_count_allocated_all( )
+  , m_count_allocated_max( )
+  , m_count_allocated_now( )
 { }
 
 template <typename T, typename A>
 info_allocator<T, A>::info_allocator( A&& a )
   : m_a( std::move(a) )
+  , m_allocate_calls( )
+  , m_deallocate_calls( )
+  , m_count_allocated_all( )
+  , m_count_allocated_max( )
+  , m_count_allocated_now( )
 { }
 
 template <typename T, typename A>
 typename info_allocator<T, A>::pointer
 info_allocator<T, A>::allocate(size_type n, const_pointer u)
 {
-    m_count_allocated_now += n;
+    pointer r = m_a.allocate(n, u);  // may throw
+
     m_count_allocated_all += n;
-    m_allocate_calls      += 1;
 
     if (m_count_allocated_now > m_count_allocated_max)
         m_count_allocated_max = m_count_allocated_now;
 
-    return m_a.allocate(n, u);
+    m_count_allocated_now += n;
+
+    ++m_allocate_calls;
+
+    return r;
 }
 
-}  // \namespace unbuggy
+template <typename T, typename A>
+void info_allocator<T, A>::deallocate(pointer p, size_type n)
+{
+    assert(m_deallocate_calls < m_allocate_calls);
+
+    ++m_deallocate_calls;
+
+    m_count_allocated_now -= n;
+
+    m_a.deallocate(p, n);   // must not throw
+}
+
+template <typename T, typename A>
+typename info_allocator<T, A>::size_type
+info_allocator<T, A>::max_size() const
+{
+    return m_a.max_size();
+}
+
+}  /// \namespace unbuggy
 
 #endif

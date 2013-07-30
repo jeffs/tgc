@@ -9,9 +9,12 @@ test: info_allocator_test
 	./info_allocator_test
 
 info_allocator_test: info_allocator_test.o info_allocator.o
-	$(CXX) -o $@ $< $(LDFLAGS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
 
 %.o: %.cpp %.hpp
+	$(CXX) -o $@ $(CPPFLAGS) $(CXXFLAGS) -c $<
+
+%_test.o: %_test.cpp %.hpp
 	$(CXX) -o $@ $(CPPFLAGS) $(CXXFLAGS) -c $<
 
 clean:
