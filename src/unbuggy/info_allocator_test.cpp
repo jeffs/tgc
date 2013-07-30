@@ -42,13 +42,13 @@ int main()
               , std::allocator_traits<std::allocator<item> >::t>( ) \
           , "type " #t " should match decorated allocator traits");
 
-    CHECK_TYPE( pointer            );
-    CHECK_TYPE( const_pointer      );
-    CHECK_TYPE( void_pointer       );
-    CHECK_TYPE( const_void_pointer );
-    CHECK_TYPE( value_type         );
-    CHECK_TYPE( size_type          );
-    CHECK_TYPE( difference_type    );
+    CHECK_TYPE( pointer            )
+    CHECK_TYPE( const_pointer      )
+    CHECK_TYPE( void_pointer       )
+    CHECK_TYPE( const_void_pointer )
+    CHECK_TYPE( value_type         )
+    CHECK_TYPE( size_type          )
+    CHECK_TYPE( difference_type    )
 
 #undef CHECK_TYPE
 

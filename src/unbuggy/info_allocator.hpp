@@ -42,8 +42,7 @@ class info_allocator {
                                                             const_void_pointer;
     typedef typename std::allocator_traits<A>::value_type           value_type;
     typedef typename std::allocator_traits<A>::size_type             size_type;
-    typedef typename std::allocator_traits<A>::difference_type
-                                                               difference_type;
+    typedef typename std::allocator_traits<A>::difference_type difference_type;
     //@}
 
     /// Provides a typedef for an \c info_allocator of objects of type \c U.
