@@ -69,8 +69,6 @@ class info_allocator: A {
 
   public:
 
-    using A::max_size;
-
     info_allocator( );
         ///< Decorates a default-constructed instance of `A`.
 
@@ -113,6 +111,8 @@ class info_allocator: A {
 
     A const& alloc() const;
         ///< Returns the decorated allocator.
+
+    info_allocator select_on_container_copy_construction() const;
 };
 
 template <typename T, typename A>
@@ -245,6 +245,34 @@ void info_allocator<T, A>::deallocate(pointer p, size_type n)
     A::deallocate(p, n);   // must not throw
 }
 
+template <typename T, typename A>
+typename info_allocator<T, A>::size_type
+info_allocator<T, A>::max_size() const
+{
+    return std::allocator_traits<A>::max_size(alloc());
+}
+
+template <typename T, typename A>
+A& info_allocator<T, A>::alloc()
+{
+    return *this;
+}
+
+template <typename T, typename A>
+A const& info_allocator<T, A>::alloc() const
+{
+    return *this;
+}
+
+template <typename T, typename A>
+info_allocator<T, A>
+info_allocator<T, A>::select_on_container_copy_construction() const
+{
+    return info_allocator(
+            std::allocator_traits<A>::
+            select_on_container_copy_construction(alloc()) );
+}
+
 }  /// \namespace unbuggy
 
 template <typename T, typename A>
@@ -292,18 +320,6 @@ bool unbuggy::operator!=(
         > const& b)
 {
     return !(a == b);
-}
-
-template <typename T, typename A>
-A& unbuggy::info_allocator<T, A>::alloc()
-{
-    return *this;
-}
-
-template <typename T, typename A>
-A const& unbuggy::info_allocator<T, A>::alloc() const
-{
-    return *this;
 }
 
 #endif

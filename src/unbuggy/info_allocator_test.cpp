@@ -102,7 +102,8 @@ int main()
     static_assert(                                                  \
             std::is_same<                                           \
                 XX::type                                            \
-              , std::allocator_traits<std::allocator<T> >::type>( ) \
+              , std::allocator_traits<std::allocator<T> >::type     \
+            >::value                                                \
           , "type " #type " should match decorated allocator traits");
 
     CHECK_TYPE( pointer            )
@@ -262,7 +263,14 @@ int main()
     assert(T::constructor_count == 1);
     assert(T::destructor_count == 1);
 
-    std::cout << sizeof(a) << '\n';
+    // Expression: a.select_on_container_copy_construction()
+    static_assert(
+            std::is_same<
+                decltype(a.select_on_container_copy_construction())
+              , X
+            >::value
+          , "a.select_on_container_copy_construction() must return X");
+    assert(a.select_on_container_copy_construction() == a);
 
     (void)v;                    // Suppress unused variable warning.
     (void)w;
