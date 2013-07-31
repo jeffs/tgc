@@ -306,12 +306,61 @@ void test_standard_requirements()
     (void)t;
     (void)s;
     (void)z;
-
 }
 
 void test_further_requirements()
 {
-    // TODO
+    std::allocator<T> d0;       // prototype for decorated allocator
+    X a( d0 );
+    assert( a.get_allocator() == d0 );
+
+    XX::pointer p = XX::allocate(a, 3);
+
+    assert(a.allocate_calls()   == 1);
+    assert(a.deallocate_calls() == 0);
+    assert(a.allocated_all()    == 3);
+    assert(a.allocated_max()    == 3);
+    assert(a.allocated_now()    == 3);
+
+    XX::pointer q = XX::allocate(a, 2);
+
+    assert(a.allocate_calls()   == 2);
+    assert(a.deallocate_calls() == 0);
+    assert(a.allocated_all()    == 5);
+    assert(a.allocated_max()    == 5);
+    assert(a.allocated_now()    == 5);
+
+    XX::deallocate(a, p, 3);
+
+    assert(a.allocate_calls()   == 2);
+    assert(a.deallocate_calls() == 1);
+    assert(a.allocated_all()    == 5);
+    assert(a.allocated_max()    == 5);
+    assert(a.allocated_now()    == 2);
+
+    p = XX::allocate(a, 1);
+
+    assert(a.allocate_calls()   == 3);
+    assert(a.deallocate_calls() == 1);
+    assert(a.allocated_all()    == 6);
+    assert(a.allocated_max()    == 5);
+    assert(a.allocated_now()    == 3);
+
+    XX::deallocate(a, p, 1);
+
+    assert(a.allocate_calls()   == 3);
+    assert(a.deallocate_calls() == 2);
+    assert(a.allocated_all()    == 6);
+    assert(a.allocated_max()    == 5);
+    assert(a.allocated_now()    == 2);
+
+    XX::deallocate(a, q, 2);
+
+    assert(a.allocate_calls()   == 3);
+    assert(a.deallocate_calls() == 3);
+    assert(a.allocated_all()    == 6);
+    assert(a.allocated_max()    == 5);
+    assert(a.allocated_now()    == 0);
 }
 
 int main()

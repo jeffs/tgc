@@ -71,12 +71,11 @@ class info_allocator: A {
 
   private:
 
-    size_type m_allocate_calls;         // number of calls to \c allocate
-    size_type m_deallocate_calls;       // number of calls to \c deallocate
-
-    size_type m_count_allocated_all;    // total number of objects allocated
-    size_type m_count_allocated_max;    // most simultaneous live objects seen
-    size_type m_count_allocated_now;    // number of currently live objects
+    size_type m_allocate_calls;     // number of calls to \c allocate
+    size_type m_deallocate_calls;   // number of calls to \c deallocate
+    size_type m_allocated_all;      // total number of objects allocated
+    size_type m_allocated_max;      // most simultaneous live objects seen
+    size_type m_allocated_now;      // number of currently live objects
 
   public:
 
@@ -126,7 +125,19 @@ class info_allocator: A {
 
     info_allocator select_on_container_copy_construction() const;
 
-    size_type count_allocated_now() const;
+    size_type allocate_calls() const;
+        ///< Returns the number of calls to \c allocate.
+
+    size_type deallocate_calls() const;
+        ///< Returns the number of calls to \c deallocate.
+
+    size_type allocated_all() const;
+        ///< Returns the total number of objects allocated.
+
+    size_type allocated_max() const;
+        ///< Returns the most simultaneous live objects seen.
+
+    size_type allocated_now() const;
         ///< Returns the number of currently live objects.
 };
 
@@ -182,9 +193,9 @@ info_allocator<T, A>::info_allocator( )
   : A( )
   , m_allocate_calls( )
   , m_deallocate_calls( )
-  , m_count_allocated_all( )
-  , m_count_allocated_max( )
-  , m_count_allocated_now( )
+  , m_allocated_all( )
+  , m_allocated_max( )
+  , m_allocated_now( )
 { }
 
 template <typename T, typename A>
@@ -192,9 +203,9 @@ info_allocator<T, A>::info_allocator( info_allocator const& a )
   : A( a.get_allocator() )
   , m_allocate_calls( )
   , m_deallocate_calls( )
-  , m_count_allocated_all( )
-  , m_count_allocated_max( )
-  , m_count_allocated_now( )
+  , m_allocated_all( )
+  , m_allocated_max( )
+  , m_allocated_now( )
 { }
 
 template <typename T, typename A>
@@ -207,9 +218,9 @@ info_allocator<T, A>::info_allocator(
   : A( a.get_allocator() )
   , m_allocate_calls( )
   , m_deallocate_calls( )
-  , m_count_allocated_all( )
-  , m_count_allocated_max( )
-  , m_count_allocated_now( )
+  , m_allocated_all( )
+  , m_allocated_max( )
+  , m_allocated_now( )
 { }
 
 template <typename T, typename A>
@@ -217,9 +228,9 @@ info_allocator<T, A>::info_allocator( A const& a )
   : A( a )
   , m_allocate_calls( )
   , m_deallocate_calls( )
-  , m_count_allocated_all( )
-  , m_count_allocated_max( )
-  , m_count_allocated_now( )
+  , m_allocated_all( )
+  , m_allocated_max( )
+  , m_allocated_now( )
 { }
 
 template <typename T, typename A>
@@ -227,9 +238,9 @@ info_allocator<T, A>::info_allocator( A&& a )
   : A( std::move(a) )
   , m_allocate_calls( )
   , m_deallocate_calls( )
-  , m_count_allocated_all( )
-  , m_count_allocated_max( )
-  , m_count_allocated_now( )
+  , m_allocated_all( )
+  , m_allocated_max( )
+  , m_allocated_now( )
 { }
 
 template <typename T, typename A>
@@ -238,11 +249,11 @@ info_allocator<T, A>::allocate(size_type n, const_void_pointer u)
 {
     pointer r = A::allocate(n, u);  // may throw
 
-    m_count_allocated_all += n;
-    m_count_allocated_now += n;
+    m_allocated_all += n;
+    m_allocated_now += n;
 
-    if (m_count_allocated_now > m_count_allocated_max)
-        m_count_allocated_max = m_count_allocated_now;
+    if (m_allocated_now > m_allocated_max)
+        m_allocated_max = m_allocated_now;
 
     ++m_allocate_calls;
 
@@ -254,7 +265,7 @@ void info_allocator<T, A>::deallocate(pointer p, size_type n)
 {
     ++m_deallocate_calls;
 
-    m_count_allocated_now -= n;
+    m_allocated_now -= n;
 
     A::deallocate(p, n);   // must not throw
 }
@@ -283,9 +294,37 @@ info_allocator<T, A>::select_on_container_copy_construction() const
 
 template <typename T, typename A>
 typename info_allocator<T, A>::size_type
-info_allocator<T, A>::count_allocated_now() const
+info_allocator<T, A>::allocate_calls() const
 {
-    return m_count_allocated_now;
+    return m_allocate_calls;
+}
+
+template <typename T, typename A>
+typename info_allocator<T, A>::size_type
+info_allocator<T, A>::deallocate_calls() const
+{
+    return m_deallocate_calls;
+}
+
+template <typename T, typename A>
+typename info_allocator<T, A>::size_type
+info_allocator<T, A>::allocated_all() const
+{
+    return m_allocated_all;
+}
+
+template <typename T, typename A>
+typename info_allocator<T, A>::size_type
+info_allocator<T, A>::allocated_max() const
+{
+    return m_allocated_max;
+}
+
+template <typename T, typename A>
+typename info_allocator<T, A>::size_type
+info_allocator<T, A>::allocated_now() const
+{
+    return m_allocated_now;
 }
 
 }  /// \namespace unbuggy
