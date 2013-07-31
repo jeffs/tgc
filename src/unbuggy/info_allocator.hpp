@@ -121,10 +121,7 @@ class info_allocator: A {
         ///< Returns the largest value that can meaningfully be passed to \c
         /// allocate.  Note that \c allocate is not guaranteed to succeed.
 
-    A& get_allocator();
-        ///< Returns the decorated allocator.
-
-    A const& get_allocator() const;
+    A get_allocator() const;
         ///< Returns the decorated allocator.
 
     info_allocator select_on_container_copy_construction() const;
@@ -270,13 +267,7 @@ info_allocator<T, A>::max_size() const
 }
 
 template <typename T, typename A>
-A& info_allocator<T, A>::get_allocator()
-{
-    return *this;
-}
-
-template <typename T, typename A>
-A const& info_allocator<T, A>::get_allocator() const
+A info_allocator<T, A>::get_allocator() const
 {
     return *this;
 }
