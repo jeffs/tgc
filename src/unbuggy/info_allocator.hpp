@@ -5,6 +5,7 @@
 #ifndef INCLUDED_UNBUGGY_INFO_ALLOCATOR
 #define INCLUDED_UNBUGGY_INFO_ALLOCATOR
 
+#include <iostream> // XXX
 #include <memory>   // allocator, allocator_traits
 #include <utility>  // move
 
@@ -120,14 +121,16 @@ class info_allocator: A {
         ///< Returns the largest value that can meaningfully be passed to \c
         /// allocate.  Note that \c allocate is not guaranteed to succeed.
 
-    A& alloc();
+    A& get_allocator();
         ///< Returns the decorated allocator.
 
-    A const& alloc() const;
+    A const& get_allocator() const;
         ///< Returns the decorated allocator.
 
     info_allocator select_on_container_copy_construction() const;
 
+    size_type count_allocated_now() const;
+        ///< Returns the number of currently live objects.
 };
 
 template <typename T, typename A>
@@ -189,7 +192,7 @@ info_allocator<T, A>::info_allocator( )
 
 template <typename T, typename A>
 info_allocator<T, A>::info_allocator( info_allocator const& a )
-  : A( a.alloc() )
+  : A( a.get_allocator() )
   , m_allocate_calls( )
   , m_deallocate_calls( )
   , m_count_allocated_all( )
@@ -204,7 +207,7 @@ info_allocator<T, A>::info_allocator(
             U
           , typename std::allocator_traits<A>::template rebind_alloc<U>
         > const& a)
-  : A( a.alloc() )
+  : A( a.get_allocator() )
   , m_allocate_calls( )
   , m_deallocate_calls( )
   , m_count_allocated_all( )
@@ -239,11 +242,10 @@ info_allocator<T, A>::allocate(size_type n, const_void_pointer u)
     pointer r = A::allocate(n, u);  // may throw
 
     m_count_allocated_all += n;
+    m_count_allocated_now += n;
 
     if (m_count_allocated_now > m_count_allocated_max)
         m_count_allocated_max = m_count_allocated_now;
-
-    m_count_allocated_now += n;
 
     ++m_allocate_calls;
 
@@ -264,17 +266,17 @@ template <typename T, typename A>
 typename info_allocator<T, A>::size_type
 info_allocator<T, A>::max_size() const
 {
-    return std::allocator_traits<A>::max_size(alloc());
+    return std::allocator_traits<A>::max_size(get_allocator());
 }
 
 template <typename T, typename A>
-A& info_allocator<T, A>::alloc()
+A& info_allocator<T, A>::get_allocator()
 {
     return *this;
 }
 
 template <typename T, typename A>
-A const& info_allocator<T, A>::alloc() const
+A const& info_allocator<T, A>::get_allocator() const
 {
     return *this;
 }
@@ -285,7 +287,14 @@ info_allocator<T, A>::select_on_container_copy_construction() const
 {
     return info_allocator(
             std::allocator_traits<A>::
-            select_on_container_copy_construction(alloc()) );
+            select_on_container_copy_construction(get_allocator()) );
+}
+
+template <typename T, typename A>
+typename info_allocator<T, A>::size_type
+info_allocator<T, A>::count_allocated_now() const
+{
+    return m_count_allocated_now;
 }
 
 }  /// \namespace unbuggy
@@ -295,7 +304,7 @@ bool unbuggy::operator==(
         info_allocator<T, A> const& a1
       , info_allocator<T, A> const& a2)
 {
-    return a1.alloc() == a2.alloc();
+    return a1.get_allocator() == a2.get_allocator();
 }
 
 template <typename T, typename A>

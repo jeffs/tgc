@@ -14,10 +14,11 @@
 // of requirements of standard allocators.  The requirements are explained
 // using several predefined types and variable names.  In the following test
 // code, types and variables matching those used in the standard requirements
-// are defined, and requirements are tested in the order expressed by the
-// standard.  These tests are superficial, as they check only the bare minimum
-// requirements of an allocator.allocator.allocator; more meaningful tests
-// follow the standard requirements, in the latter portion of this test driver.
+// are defined, and requirements are tested in procedure
+// test_standard_requirements, in the order expressed by the standard.  These
+// tests are superficial, as they check only the bare minimum requirements of
+// an allocator; further tests follow the standard requirements, in procedure
+// test_further_requirements.
 
 // T is any non-const, non-reference object type.  The following implementation
 // supports side effects in the constructor and destructor, useful for checking
@@ -73,7 +74,7 @@ typedef std::allocator_traits<Y> YY;
 typedef std::allocator_traits<std::allocator<T> > A;
     // a convenience for testing info_allocator
 
-int main()
+void test_standard_requirements()
 {
     // [allocator.requirements] terminology, continued
 
@@ -305,4 +306,16 @@ int main()
     (void)t;
     (void)s;
     (void)z;
+
+}
+
+void test_further_requirements()
+{
+    // TODO
+}
+
+int main()
+{
+    test_standard_requirements();
+    test_further_requirements();
 }
