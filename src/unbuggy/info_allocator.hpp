@@ -86,7 +86,7 @@ class info_allocator: A {
         ///< Copies \a a.
 
     template <typename U>
-    explicit info_allocator(
+    info_allocator(
             unbuggy::info_allocator<
                 U
               , typename std::allocator_traits<A>::template rebind_alloc<U>
@@ -94,7 +94,11 @@ class info_allocator: A {
         ///< Converts and decorates the underlying allocator of \a a.  Note
         /// that \a a has a type similar to this, except that \a a allocates
         /// objects of type \a U rather than type \c T.  Also note that this
-        /// conversion constructor is required by the C++ Standard.
+        /// conversion constructor is required by the C++ Standard (Table 28,
+        /// expression <code>X a(b)</code>), and is implicit (in accordance with
+        /// the example in [allocator.requirements] clause 5) so that the
+        /// allocator of one container may be conveniently supplied to the
+        /// constructor of an allocator having a different element type.
 
     explicit info_allocator( A const& a );
         ///< Decorates a copy of `a`.
