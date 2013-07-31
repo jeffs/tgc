@@ -16,8 +16,8 @@ namespace unbuggy {
 /// A memory allocator that records simple statistics.  Meets the requirements
 /// of an STL-compatible memory allocator by forwarding standard allocator
 /// requests to an underlying allocator of user-specified type, optionally
-/// copied from an instance supplied at construction.  Additionally,
-/// `info_allocator` records the following statistics:
+/// copied from an instance supplied at construction.  Additionally, \c
+/// info_allocator records the following statistics:
 ///
 /// - number of allocations
 /// - number of deallocations
@@ -80,7 +80,7 @@ class info_allocator: A {
   public:
 
     info_allocator( );
-        ///< Decorates a default-constructed instance of `A`.
+        ///< Decorates a default-constructed instance of \c A.
 
     info_allocator( info_allocator const& a );
         ///< Copies \a a.
@@ -101,10 +101,10 @@ class info_allocator: A {
         /// constructor of an allocator having a different element type.
 
     explicit info_allocator( A const& a );
-        ///< Decorates a copy of `a`.
+        ///< Decorates a copy of \a a.
 
     explicit info_allocator( A&& a );
-        ///< Decorates an allocator moved from `a`.
+        ///< Decorates an allocator moved from \a a.
 
     pointer allocate(size_type n, const_void_pointer u =nullptr);
         ///< Returns space for \a n objects of type \c T, passing \a u as a
