@@ -7,7 +7,7 @@ LDFLAGS = -stdlib=libc++
 
 test: info_allocator_test usage
 	./info_allocator_test
-#	./usage < Makefile
+	./usage < Makefile
 
 info_allocator_test: info_allocator_test.o info_allocator.o
 	$(CXX) -o $@ $^ $(LDFLAGS)

@@ -5,13 +5,19 @@
 #ifndef INCLUDED_UNBUGGY_INFO_ALLOCATOR
 #define INCLUDED_UNBUGGY_INFO_ALLOCATOR
 
-#include <iostream> // XXX
 #include <memory>   // allocator, allocator_traits
-#include <utility>  // move
+
+/// \cond DETAILS
 
 namespace unbuggy {
 
-// Declaration of info_allocator
+namespace info_allocator_details {
+
+struct shared_state;
+
+}  // namespace info_allocator_details
+
+/// \endcond
 
 /// A memory allocator that records simple statistics.  Meets the requirements
 /// of an STL-compatible memory allocator by forwarding standard allocator
@@ -24,6 +30,14 @@ namespace unbuggy {
 /// - total amount of allocated memory (regardless of whether deallocated)
 /// - maximum amount of outstanding memory from this allocator at any time
 ///
+/// Statistics are shared by all copies of an \c info_allocator object
+/// (including rebound conversions).  For example, if <code>info_allocator
+/// b</code> is a copy of <code>info_allocator a</code>, all allocations from
+/// either allocator will be reflected in the counts returned by the other.
+/// Shared state remains valid until the last allocator in the copy group is
+/// destroyed; the first instance need not be kept alive simply to maintain
+/// statistics.
+///
 /// \param T the allocated type
 /// \param A the underlying allocator type
 ///
@@ -34,29 +48,28 @@ namespace unbuggy {
 template <typename T, typename A =std::allocator<T> >
 class info_allocator: A {
 
+    typedef std::allocator_traits<A> a_traits_t;
+        // for brevity in later type definitions
+
   public:
 
-    typedef std::allocator_traits<A> alloc_traits;
-        //< allocator traits of type \c A
+    ///@{
+    /// matches the underlying allocator traits
+    typedef typename a_traits_t::pointer                        pointer;
+    typedef typename a_traits_t::const_pointer            const_pointer;
+    typedef typename a_traits_t::void_pointer              void_pointer;
+    typedef typename a_traits_t::const_void_pointer  const_void_pointer;
+    typedef typename a_traits_t::value_type                  value_type;
+    typedef typename a_traits_t::size_type                    size_type;
+    typedef typename a_traits_t::difference_type        difference_type;
 
-    /// Type definitions to match the underlying allocator traits.
-    //@{
-
-    typedef typename alloc_traits::pointer                       pointer;
-    typedef typename alloc_traits::const_pointer           const_pointer;
-    typedef typename alloc_traits::void_pointer             void_pointer;
-    typedef typename alloc_traits::const_void_pointer const_void_pointer;
-    typedef typename alloc_traits::value_type                 value_type;
-    typedef typename alloc_traits::size_type                   size_type;
-    typedef typename alloc_traits::difference_type       difference_type;
-
-    typedef typename alloc_traits::propagate_on_container_copy_assignment
-                                   propagate_on_container_copy_assignment;
-    typedef typename alloc_traits::propagate_on_container_move_assignment
-                                   propagate_on_container_move_assignment;
-    typedef typename alloc_traits::propagate_on_container_swap
-                                   propagate_on_container_swap;
-    //@}
+    typedef typename a_traits_t::propagate_on_container_copy_assignment
+                                 propagate_on_container_copy_assignment;
+    typedef typename a_traits_t::propagate_on_container_move_assignment
+                                 propagate_on_container_move_assignment;
+    typedef typename a_traits_t::propagate_on_container_swap
+                                 propagate_on_container_swap;
+    ///@}
 
     /// Provides a typedef for an \c info_allocator of objects of type \c U.
     ///
@@ -71,40 +84,76 @@ class info_allocator: A {
 
   private:
 
-    size_type m_allocate_calls;     // number of calls to \c allocate
-    size_type m_deallocate_calls;   // number of calls to \c deallocate
-    size_type m_allocated_all;      // total number of objects allocated
-    size_type m_allocated_max;      // most simultaneous live objects seen
-    size_type m_allocated_now;      // number of currently live objects
+    typedef info_allocator_details::shared_state shared_state;
+        ///< for brevity in later code
+
+    template <typename U, typename B>
+    friend class unbuggy::info_allocator;
+
+    shared_state* m_shared;
+        ///< statistics shared with copies of this allocator
+
+    shared_state* create_shared_state() const;
+        ///< Creates and returns a \c shared_state structure.  The structure is
+        /// allocated from a rebind of this object's underlying allocator.  The
+        /// result has reference count 1 and all other counts set to 0.
+
+    void destroy_shared_state(shared_state* s) const;
+        ///< Destroys and deallocates \a s.  \a s is deallocated by this
+        /// object's underlying allocator.
 
   public:
 
     info_allocator( );
         ///< Decorates a default-constructed instance of \c A.
 
-    info_allocator( info_allocator const& a );
-        ///< Copies \a a.
+    info_allocator( info_allocator const& original );
+        ///< Copies \a original.
+
+    info_allocator( info_allocator&& original );
+        ///< Moves the underlying allocator from \a original.
 
     template <typename U>
     info_allocator(
             unbuggy::info_allocator<
                 U
               , typename std::allocator_traits<A>::template rebind_alloc<U>
-            > const& a);
-        ///< Converts and decorates the underlying allocator of \a a.  Note
-        /// that \a a has a type similar to this, except that \a a allocates
-        /// objects of type \a U rather than type \c T.  Also note that this
-        /// conversion constructor is required by the C++ Standard (Table 28,
-        /// expression <code>X a(b)</code>), and is implicit (in accordance with
-        /// the example in [allocator.requirements] clause 5) so that the
-        /// allocator of one container may be conveniently supplied to the
-        /// constructor of an allocator having a different element type.
+            > const& original);
+        ///< Decorates a rebound copy of the underlying allocator from \a
+        ///  original Allocation counts and other statistics are shared with \a
+        ///  original.  This conversion constructor is required by the C++
+        ///  Standard (Table 28, expression <code>X a(b)</code>), and is
+        ///  implicit (in accordance with the example in
+        ///  [allocator.requirements] clause 5) so that the allocator of one
+        ///  container may be conveniently supplied to the constructor of an
+        ///  allocator having a different element type.  Upon return from this
+        ///  constructor, this object is equal to \a original.
 
     explicit info_allocator( A const& a );
         ///< Decorates a copy of \a a.
 
     explicit info_allocator( A&& a );
         ///< Decorates an allocator moved from \a a.
+
+    ~info_allocator();
+        ///< Destroys this object.  Releases shared state if this allocator was
+        /// the last in its copy group.
+
+    info_allocator& operator=(info_allocator const& rhs);
+        ///< Assigns to this object the value of \a rhs.  This allocator
+        /// leaves its former copy group, and becomes part of the copy group of
+        /// \a rhs.  If this allocator was the last member of its copy group,
+        /// then the group's shared state is destroyed.  Assignment from other
+        /// instantiations of \c info_allocator is supported through implicit
+        /// conversion to this type, followed by invocation of this assignment
+        /// operator.
+
+    info_allocator& operator=(info_allocator&& rhs);
+        ///< Assigns to this object the value of \a rhs, moving its underlying
+        /// allocator.  This allocator leaves its former copy group, and
+        /// becomes part of the copy group of \a rhs.  If this allocator was
+        /// the last member of its copy group, then the group's shared state is
+        /// destroyed.
 
     pointer allocate(size_type n, const_void_pointer u =nullptr);
         ///< Returns space for \a n objects of type \c T, passing \a u as a
@@ -186,194 +235,7 @@ bool operator!=(
     ///< Returns \c true if \a a and \a b do not have the same value.
     /// Equivalent to <code>!(a == b)</code>.
 
-// Definition of info_allocator
-
-template <typename T, typename A>
-info_allocator<T, A>::info_allocator( )
-  : A( )
-  , m_allocate_calls( )
-  , m_deallocate_calls( )
-  , m_allocated_all( )
-  , m_allocated_max( )
-  , m_allocated_now( )
-{ }
-
-template <typename T, typename A>
-info_allocator<T, A>::info_allocator( info_allocator const& a )
-  : A( a.get_allocator() )
-  , m_allocate_calls( )
-  , m_deallocate_calls( )
-  , m_allocated_all( )
-  , m_allocated_max( )
-  , m_allocated_now( )
-{ }
-
-template <typename T, typename A>
-template <typename U>
-info_allocator<T, A>::info_allocator(
-        unbuggy::info_allocator<
-            U
-          , typename std::allocator_traits<A>::template rebind_alloc<U>
-        > const& a)
-  : A( a.get_allocator() )
-  , m_allocate_calls( )
-  , m_deallocate_calls( )
-  , m_allocated_all( )
-  , m_allocated_max( )
-  , m_allocated_now( )
-{ }
-
-template <typename T, typename A>
-info_allocator<T, A>::info_allocator( A const& a )
-  : A( a )
-  , m_allocate_calls( )
-  , m_deallocate_calls( )
-  , m_allocated_all( )
-  , m_allocated_max( )
-  , m_allocated_now( )
-{ }
-
-template <typename T, typename A>
-info_allocator<T, A>::info_allocator( A&& a )
-  : A( std::move(a) )
-  , m_allocate_calls( )
-  , m_deallocate_calls( )
-  , m_allocated_all( )
-  , m_allocated_max( )
-  , m_allocated_now( )
-{ }
-
-template <typename T, typename A>
-typename info_allocator<T, A>::pointer
-info_allocator<T, A>::allocate(size_type n, const_void_pointer u)
-{
-    pointer r = A::allocate(n, u);  // may throw
-
-    m_allocated_all += n;
-    m_allocated_now += n;
-
-    if (m_allocated_now > m_allocated_max)
-        m_allocated_max = m_allocated_now;
-
-    ++m_allocate_calls;
-
-    return r;
-}
-
-template <typename T, typename A>
-void info_allocator<T, A>::deallocate(pointer p, size_type n)
-{
-    ++m_deallocate_calls;
-
-    m_allocated_now -= n;
-
-    A::deallocate(p, n);   // must not throw
-}
-
-template <typename T, typename A>
-typename info_allocator<T, A>::size_type
-info_allocator<T, A>::max_size() const
-{
-    return std::allocator_traits<A>::max_size(get_allocator());
-}
-
-template <typename T, typename A>
-A info_allocator<T, A>::get_allocator() const
-{
-    return *this;
-}
-
-template <typename T, typename A>
-info_allocator<T, A>
-info_allocator<T, A>::select_on_container_copy_construction() const
-{
-    return info_allocator(
-            std::allocator_traits<A>::
-            select_on_container_copy_construction(get_allocator()) );
-}
-
-template <typename T, typename A>
-typename info_allocator<T, A>::size_type
-info_allocator<T, A>::allocate_calls() const
-{
-    return m_allocate_calls;
-}
-
-template <typename T, typename A>
-typename info_allocator<T, A>::size_type
-info_allocator<T, A>::deallocate_calls() const
-{
-    return m_deallocate_calls;
-}
-
-template <typename T, typename A>
-typename info_allocator<T, A>::size_type
-info_allocator<T, A>::allocated_all() const
-{
-    return m_allocated_all;
-}
-
-template <typename T, typename A>
-typename info_allocator<T, A>::size_type
-info_allocator<T, A>::allocated_max() const
-{
-    return m_allocated_max;
-}
-
-template <typename T, typename A>
-typename info_allocator<T, A>::size_type
-info_allocator<T, A>::allocated_now() const
-{
-    return m_allocated_now;
-}
-
 }  /// \namespace unbuggy
 
-template <typename T, typename A>
-bool unbuggy::operator==(
-        info_allocator<T, A> const& a1
-      , info_allocator<T, A> const& a2)
-{
-    return a1.get_allocator() == a2.get_allocator();
-}
-
-template <typename T, typename A>
-bool unbuggy::operator!=(
-        info_allocator<T, A> const& a1
-      , info_allocator<T, A> const& a2)
-{
-    return !(a1 == a2);
-}
-
-template <typename T, typename A, typename U>
-bool unbuggy::operator==(
-        info_allocator<
-            T
-          , A
-        > const& a
-      , info_allocator<
-            U
-          , typename std::allocator_traits<A>::template rebind_alloc<U>
-        > const& b)
-{
-    typedef typename std::allocator_traits<A>::template rebind_alloc<U> B;
-    typedef typename info_allocator<U, B>::template rebind<T>::other    Y;
-
-    return a == Y( b );
-}
-
-template <typename T, typename A, typename U>
-bool unbuggy::operator!=(
-        info_allocator<
-            T
-          , A
-        > const& a
-      , info_allocator<
-            U
-          , typename std::allocator_traits<A>::template rebind_alloc<U>
-        > const& b)
-{
-    return !(a == b);
-}
-
+#include "unbuggy/info_allocator.tpp"
 #endif
