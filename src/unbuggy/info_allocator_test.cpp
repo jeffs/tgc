@@ -4,10 +4,11 @@
 ///
 /// @cond
 
+#include <iostream>     // XXX
+
 #include "unbuggy/info_allocator.hpp"
 
 #include <cassert>      // assert
-#include <iostream>     // XXX
 #include <type_traits>  // is_same, static_assert
 
 // The C++ Standard 14882-2012 specifies, in [allocator.requirements], a number
@@ -57,6 +58,11 @@ struct C: T {
      : value( v )
     { }
 };
+
+static_assert(sizeof(C) != sizeof(T), "C and T should have different sizes");
+    // The value member of C causes C to have a different size from T, making a
+    // combination of T and C allocations a simple way to check statistics
+    // shared by allocators of rebound types.
 
 struct V {                  // a type convertible to T
     operator T() const
@@ -310,57 +316,97 @@ void test_standard_requirements()
 
 void test_further_requirements()
 {
-    std::allocator<T> d0;       // prototype for decorated allocator
-    X a( d0 );
-    assert( a.get_allocator() == d0 );
+    // A default-constructed info_allocator must default-construct its
+    // underlying allocator.
 
-    XX::pointer p = XX::allocate(a, 3);
+    std::allocator<T>             a0;
+    X                             a;        assert(a.get_allocator() == a0);
+    unbuggy::info_allocator<T, X> b;        assert(b.get_allocator() == a);
 
-    assert(a.allocate_calls()   == 1);
-    assert(a.deallocate_calls() == 0);
-    assert(a.allocated_all()    == 3);
-    assert(a.allocated_max()    == 3);
-    assert(a.allocated_now()    == 3);
+    // A value-constructed info_allocator must wrap the supplied allocator.
 
-    XX::pointer q = XX::allocate(a, 2);
+    X a1( a0 );                             assert(a1.get_allocator() == a0);
 
-    assert(a.allocate_calls()   == 2);
-    assert(a.deallocate_calls() == 0);
-    assert(a.allocated_all()    == 5);
-    assert(a.allocated_max()    == 5);
-    assert(a.allocated_now()    == 5);
+    // Counts must be correctly maintained for interspersed allocations and
+    // deallocations.
 
-    XX::deallocate(a, p, 3);
+    XX::pointer p = XX::allocate(a, 3);     assert(a.allocate_calls()   == 1);
+                                            assert(a.deallocate_calls() == 0);
+    std::size_t oa = a.objects_all();       assert(oa                   == 3);
+    std::size_t om = a.objects_max();       assert(om                   == 3);
+    std::size_t on = a.objects_now();       assert(on                   == 3);
+    std::size_t z  = sizeof(T);             assert(a.memory_all()  == oa * z);
+                                            assert(a.memory_max()  == om * z);
+                                            assert(a.memory_now()  == on * z);
 
-    assert(a.allocate_calls()   == 2);
-    assert(a.deallocate_calls() == 1);
-    assert(a.allocated_all()    == 5);
-    assert(a.allocated_max()    == 5);
-    assert(a.allocated_now()    == 2);
+    XX::pointer q = XX::allocate(a, 2);     assert(a.allocate_calls()   == 2);
+                                            assert(a.deallocate_calls() == 0);
+    oa = a.objects_all();                   assert(oa                   == 5);
+    om = a.objects_max();                   assert(om                   == 5);
+    on = a.objects_now();                   assert(on                   == 5);
+                                            assert(a.memory_all()  == oa * z);
+                                            assert(a.memory_max()  == om * z);
+                                            assert(a.memory_now()  == on * z);
 
-    p = XX::allocate(a, 1);
+    XX::deallocate(a, p, 3);                assert(a.allocate_calls()   == 2);
+                                            assert(a.deallocate_calls() == 1);
+    oa = a.objects_all();                   assert(oa                   == 5);
+    om = a.objects_max();                   assert(om                   == 5);
+    on = a.objects_now();                   assert(on                   == 2);
+                                            assert(a.memory_all()  == oa * z);
+                                            assert(a.memory_max()  == om * z);
+                                            assert(a.memory_now()  == on * z);
 
-    assert(a.allocate_calls()   == 3);
-    assert(a.deallocate_calls() == 1);
-    assert(a.allocated_all()    == 6);
-    assert(a.allocated_max()    == 5);
-    assert(a.allocated_now()    == 3);
+    p = XX::allocate(a, 1);                 assert(a.allocate_calls()   == 3);
+                                            assert(a.deallocate_calls() == 1);
+    oa = a.objects_all();                   assert(oa                   == 6);
+    om = a.objects_max();                   assert(om                   == 5);
+    on = a.objects_now();                   assert(on                   == 3);
+                                            assert(a.memory_all()  == oa * z);
+                                            assert(a.memory_max()  == om * z);
+                                            assert(a.memory_now()  == on * z);
 
-    XX::deallocate(a, p, 1);
+    XX::deallocate(a, p, 1);                assert(a.allocate_calls()   == 3);
+                                            assert(a.deallocate_calls() == 2);
+    oa = a.objects_all();                   assert(oa                   == 6);
+    om = a.objects_max();                   assert(om                   == 5);
+    on = a.objects_now();                   assert(on                   == 2);
+                                            assert(a.memory_all()  == oa * z);
+                                            assert(a.memory_max()  == om * z);
+                                            assert(a.memory_now()  == on * z);
 
-    assert(a.allocate_calls()   == 3);
-    assert(a.deallocate_calls() == 2);
-    assert(a.allocated_all()    == 6);
-    assert(a.allocated_max()    == 5);
-    assert(a.allocated_now()    == 2);
+    // Allocators in the same copy group must share counts, even when rebound.
 
-    XX::deallocate(a, q, 2);
+    typedef unbuggy::info_allocator<C> Z;
+    typedef std::allocator_traits<Z>   ZZ;
 
-    assert(a.allocate_calls()   == 3);
-    assert(a.deallocate_calls() == 3);
-    assert(a.allocated_all()    == 6);
-    assert(a.allocated_max()    == 5);
-    assert(a.allocated_now()    == 0);
+    Z c( a );
+    ZZ::pointer r = ZZ::allocate(c, 4);     assert(a.allocate_calls()   ==  4);
+                                            assert(a.deallocate_calls() ==  2);
+                                            assert(a.objects_all()      == 10);
+                                            assert(a.objects_max()      ==  6);
+    std::size_t z1 = sizeof(C);             assert(a.objects_now()      ==  6);
+    std::size_t ma = 6 * z + 4 * z1;        assert(a.memory_all()       == ma);
+    std::size_t mm = 2 * z + 4 * z1;        assert(a.memory_max()       == mm);
+    std::size_t mn = 2 * z + 4 * z1;        assert(a.memory_now()       == mn);
+
+    XX::deallocate(a, q, 2);                assert(a.allocate_calls()   ==  4);
+                                            assert(a.deallocate_calls() ==  3);
+                                            assert(a.objects_all()      == 10);
+                                            assert(a.objects_max()      ==  6);
+                                            assert(a.objects_now()      ==  4);
+    ma = 6 * z + 4 * z1;                    assert(a.memory_all()       == ma);
+    mm = 2 * z + 4 * z1;                    assert(a.memory_max()       == mm);
+    mn =         4 * z1;                    assert(a.memory_now()       == mn);
+
+    ZZ::deallocate(c, r, 4);                assert(a.allocate_calls()   ==  4);
+                                            assert(a.deallocate_calls() ==  4);
+                                            assert(a.objects_all()      == 10);
+                                            assert(a.objects_max()      ==  6);
+                                            assert(a.objects_now()      ==  0);
+    ma = 6 * z + 4 * z1;                    assert(a.memory_all()       == ma);
+    mm = 2 * z + 4 * z1;                    assert(a.memory_max()       == mm);
+    mn =              0;                    assert(a.memory_now()       == mn);
 }
 
 int main()

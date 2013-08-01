@@ -13,6 +13,7 @@ namespace unbuggy {
 
 namespace info_allocator_details {
 
+template <typename Size_type>
 struct shared_state;
 
 }  // namespace info_allocator_details
@@ -27,16 +28,26 @@ struct shared_state;
 ///
 /// - number of allocations
 /// - number of deallocations
-/// - total amount of allocated memory (regardless of whether deallocated)
-/// - maximum amount of outstanding memory from this allocator at any time
+/// - total number of allocated objects
+/// - number of objects currently live (i.e., not yet deallocated)
+/// - maximum number of objects live at any time
+/// - total amount of memory ever allocated (regardless of whether deallocated)
+/// - amount of memory currently allocated (but not yet deallocated)
+/// - maximum amount of allocated memory live at any time
 ///
 /// Statistics are shared by all copies of an \c info_allocator object
 /// (including rebound conversions).  For example, if <code>info_allocator
 /// b</code> is a copy of <code>info_allocator a</code>, all allocations from
 /// either allocator will be reflected in the counts returned by the other.
 /// Shared state remains valid until the last allocator in the copy group is
-/// destroyed; the first instance need not be kept alive simply to maintain
-/// statistics.
+/// destroyed (or assigned a new value); the first instance need not be kept
+/// alive simply to maintain statistics.
+///
+/// Memory consumption is measured as the sum of the sizes of all allocated
+/// objects.  Statistics do not include allocations for internal use by \c
+/// info_allocator or the underlying allocator.  Internal memory use of an \c
+/// info_allocator may be tracked using a second \c info_allocator as the
+/// underlying allocator of the first.
 ///
 /// \param T the allocated type
 /// \param A the underlying allocator type
@@ -84,7 +95,7 @@ class info_allocator: A {
 
   private:
 
-    typedef info_allocator_details::shared_state shared_state;
+    typedef info_allocator_details::shared_state<size_type> shared_state;
         ///< for brevity in later code
 
     template <typename U, typename B>
@@ -163,7 +174,8 @@ class info_allocator: A {
     void deallocate(pointer p, size_type n);
         ///< Frees space for \a n objects beginning at address \p.  The
         /// behavior is undefined unless \a p was returned by a previous call
-        /// to \c allocate exactly \a n objects.
+        /// to \c allocate exactly \a n objects, and has not already been
+        /// deallocated.
 
     size_type max_size() const;
         ///< Returns the largest value that can meaningfully be passed to \c
@@ -180,14 +192,25 @@ class info_allocator: A {
     size_type deallocate_calls() const;
         ///< Returns the number of calls to \c deallocate.
 
-    size_type allocated_all() const;
-        ///< Returns the total number of objects allocated.
+    size_type objects_all() const;
+        ///< Returns the total number of objects allocated.  The result
+        /// includes objectS that have been deallocated.
 
-    size_type allocated_max() const;
+    size_type objects_max() const;
         ///< Returns the most simultaneous live objects seen.
 
-    size_type allocated_now() const;
+    size_type objects_now() const;
         ///< Returns the number of currently live objects.
+
+    size_type memory_all() const;
+        ///< Returns the total amount of memory allocated.  The result includes
+        /// memory that has been deallocated.
+
+    size_type memory_max() const;
+        ///< Returns the highest amount of live memory allocated at any time.
+
+    size_type memory_now() const;
+        ///< Returns the amount of currently live memory.
 };
 
 template <typename T, typename A>
