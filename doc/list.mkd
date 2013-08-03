@@ -1,18 +1,26 @@
+Components
+==========
+The following components comprise the Unbuggy memory management library.
+
 Concepts
 --------
-`Allocator`
-  : defined by INCITS ISO IEC 14882 2012
+### Level 1
 
 `AllocatorDelegate`
   : backs a `delegating_allocator`
   : mirrors `Allocator` methods, accepting `Allocator` as first parameter
+  : `Allocator` is defined by INCITS ISO IEC 14882 2012
 
 Allocators
 ----------
+### Level 1
+
 `delegated_allocator`
   : decorates an `Allocator`
   : shares ownership of an `AllocatorDelegate`
   : forwards method calls to `AllocatorDelegate`, passing decorated `Allocator`
+
+### Level 2
 
 `auto_allocator`
   : allocates memory from a growable pool
@@ -20,29 +28,35 @@ Allocators
         template <typename A>
         using auto_allocator = delegated_allocator<A, auto_allocator_delegate>;
 
+`counting_allocator`
+  : counts calls to all `Allocator` methods
+  : counts allocated and deallocated objects
+
+        template <typename A>
+        using counting_allocator = delegated_allocator<A, counting_allocator_delegate>;
+
 `finite_allocator`
-  : allocates memory from a fixed-size pool
+  : allocates memory from a finite buffer
 
         template <typename A>
         using finite_allocator = delegated_allocator<A, finite_allocator_delegate>;
 
-`shared_allocator`
-  : shares ownership of a decorated `Allocator`
-
 Delegates
 ---------
+### Level 1
+
 `auto_allocator_delegate`
   : allocates memory from a growable pool
   : grows pool using parameter `Allocator`
 
-`finite_allocator_delegate`
-  : allocates memory from a fixed-size pool
-  : maintains an internal heap
-  : uses leading parameter `Allocator` only to determine object size
-
 `counting_allocator_delegate`
   : counts calls to all `Allocator` methods
-  : counts allocated and deallocate objects
+  : counts allocated and deallocated objects
+
+`finite_allocator_delegate`
+  : allocates memory from a finite buffer
+  : maintains an internal heap
+  : uses leading parameter `Allocator` only to determine object size
 
 `null_allocator_delegate`
   : simply passes all calls to leading `Allocator` parameter

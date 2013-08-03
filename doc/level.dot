@@ -1,24 +1,42 @@
 digraph Levels {
     compound=true;
     fontsize=12;
+    node [shape=none];
+
+    subgraph cluster_legend {
+        style=invis;
+        node [shape=none];
+        edge [style=invis];
+
+        2 -> 1;
+    }
+
+    subgraph cluster_level2 {
+        label="Level 1";
+        labeljust="l";
+        style=invis;
+
+        auto_allocator;
+        finite_allocator;
+    }
 
     subgraph cluster_level1 {
         label="Level 1";
-        labeljust="l"
-        //style=invis;
+        labeljust="l";
+        style=invis;
 
-        AllocatorObserver;
+        AllocatorDelegate;
+        counting_allocator_delegate;
+        delegated_allocator;
+        auto_allocator_delegate;
+        finite_allocator_delegate;
+        null_allocator_delegate;
     }
 
-    subgraph cluster_standard {
-        label="C++ Standard"
-        labeljust="l"
-
-        //style=invis;
-        Allocator;
-    }
-
-    AllocatorObserver -> Allocator
-        [ltail=cluster_level1,lhead=cluster_standard];
-
+    auto_allocator -> auto_allocator_delegate;
+    auto_allocator -> delegated_allocator;
+    counting_allocator -> delegated_allocator;
+    counting_allocator -> counting_allocator_delegate;
+    finite_allocator -> delegated_allocator;
+    finite_allocator -> finite_allocator_delegate;
 }
