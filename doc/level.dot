@@ -1,0 +1,24 @@
+digraph Levels {
+    compound=true;
+    fontsize=12;
+
+    subgraph cluster_level1 {
+        label="Level 1";
+        labeljust="l"
+        //style=invis;
+
+        AllocatorObserver;
+    }
+
+    subgraph cluster_standard {
+        label="C++ Standard"
+        labeljust="l"
+
+        //style=invis;
+        Allocator;
+    }
+
+    AllocatorObserver -> Allocator
+        [ltail=cluster_level1,lhead=cluster_standard];
+
+}
