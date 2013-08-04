@@ -1,10 +1,8 @@
-/// \file delegated_allocator_test.cpp
+/// \file null_allocator_delegate_test.cpp
 ///
 /// \copyright Copyright 2013 Unbuggy Software LLC.  All rights reserved.
 ///
 /// \cond TEST
-
-#include "unbuggy/delegated_allocator.hpp"
 
 #include "unbuggy/null_allocator_delegate.hpp"
 

@@ -1,4 +1,4 @@
-/// \file delegated_allocator.tpp
+/// \file delegate_allocator.tpp
 ///
 /// \copyright Copyright 2013 Unbuggy Software LLC.  All rights reserved.
 
@@ -7,7 +7,7 @@
 namespace unbuggy {
 
 /// \cond DETAILS
-namespace delegated_allocator_details {
+namespace delegate_allocator_details {
 
     template <typename D>
     struct shared_delegate: D {
@@ -20,8 +20,8 @@ namespace delegated_allocator_details {
 // Private Methods
 
 template <typename T, typename D, typename A>
-typename delegated_allocator<T, D, A>::shared_delegate*
-delegated_allocator<T, D, A>::create_delegate(D const& d) const
+typename delegate_allocator<T, D, A>::shared_delegate*
+delegate_allocator<T, D, A>::create_delegate(D const& d) const
 {
     typename delegate_rebind::alloc b( static_cast<A const&>(*this) );
 
@@ -33,8 +33,8 @@ delegated_allocator<T, D, A>::create_delegate(D const& d) const
 }
 
 template <typename T, typename D, typename A>
-typename delegated_allocator<T, D, A>::shared_delegate*
-delegated_allocator<T, D, A>::create_delegate() const
+typename delegate_allocator<T, D, A>::shared_delegate*
+delegate_allocator<T, D, A>::create_delegate() const
 {
     typename delegate_rebind::alloc b( static_cast<A const&>(*this) );
 
@@ -46,7 +46,7 @@ delegated_allocator<T, D, A>::create_delegate() const
 }
 
 template <typename T, typename D, typename A>
-void delegated_allocator<T, D, A>::destroy_delegate(shared_delegate* d) const
+void delegate_allocator<T, D, A>::destroy_delegate(shared_delegate* d) const
 {
     typename delegate_rebind::alloc b( static_cast<A const&>(*this) );
 
@@ -57,7 +57,7 @@ void delegated_allocator<T, D, A>::destroy_delegate(shared_delegate* d) const
 // Default Constructor
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( )
+delegate_allocator<T, D, A>::delegate_allocator( )
   : A( )
   , m_delegate( create_delegate() )
 { }
@@ -65,8 +65,8 @@ delegated_allocator<T, D, A>::delegated_allocator( )
 // Copy Constructor
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator(
-        delegated_allocator const& original ) noexcept
+delegate_allocator<T, D, A>::delegate_allocator(
+        delegate_allocator const& original ) noexcept
   : A( static_cast<A const&>(original) )
   , m_delegate( original.m_delegate )
 {
@@ -76,8 +76,8 @@ delegated_allocator<T, D, A>::delegated_allocator(
 // Move Constructor
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator(
-        delegated_allocator&& original ) noexcept
+delegate_allocator<T, D, A>::delegate_allocator(
+        delegate_allocator&& original ) noexcept
   : A( std::move(static_cast<A&>(original)) )
   , m_delegate( original.m_delegate )
 {
@@ -88,8 +88,8 @@ delegated_allocator<T, D, A>::delegated_allocator(
 
 template <typename T, typename D, typename A>
 template <typename U>
-delegated_allocator<T, D, A>::delegated_allocator(
-        unbuggy::delegated_allocator<
+delegate_allocator<T, D, A>::delegate_allocator(
+        unbuggy::delegate_allocator<
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>
@@ -106,8 +106,8 @@ delegated_allocator<T, D, A>::delegated_allocator(
 
 template <typename T, typename D, typename A>
 template <typename U>
-delegated_allocator<T, D, A>::delegated_allocator(
-        unbuggy::delegated_allocator<
+delegate_allocator<T, D, A>::delegate_allocator(
+        unbuggy::delegate_allocator<
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>
@@ -123,49 +123,49 @@ delegated_allocator<T, D, A>::delegated_allocator(
 // Explicit Constructors
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( A const& a ) noexcept
+delegate_allocator<T, D, A>::delegate_allocator( A const& a ) noexcept
   : A( a )
   , m_delegate( create_delegate() )
 { }
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( A&& a ) noexcept
+delegate_allocator<T, D, A>::delegate_allocator( A&& a ) noexcept
   : A( std::move(a) )
   , m_delegate( create_delegate() )
 { }
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( D const& d )
+delegate_allocator<T, D, A>::delegate_allocator( D const& d )
   : A( )
   , m_delegate( create_delegate(d) )
 { }
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( D const& d, A const& a )
+delegate_allocator<T, D, A>::delegate_allocator( D const& d, A const& a )
   : A( a )
   , m_delegate( create_delegate(d) )
 { }
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( D const& d, A&& a )
+delegate_allocator<T, D, A>::delegate_allocator( D const& d, A&& a )
   : A( std::move(a) )
   , m_delegate( create_delegate(d) )
 { }
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( D&& d )
+delegate_allocator<T, D, A>::delegate_allocator( D&& d )
   : A( )
   , m_delegate( create_delegate(std::move(d)) )
 { }
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( D&& d, A const& a )
+delegate_allocator<T, D, A>::delegate_allocator( D&& d, A const& a )
   : A( a )
   , m_delegate( create_delegate(std::move(d)) )
 { }
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( D&& d, A&& a )
+delegate_allocator<T, D, A>::delegate_allocator( D&& d, A&& a )
   : A( std::move(a) )
   , m_delegate( create_delegate(std::move(d)) )
 { }
@@ -173,7 +173,7 @@ delegated_allocator<T, D, A>::delegated_allocator( D&& d, A&& a )
 // Destructor
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::~delegated_allocator()
+delegate_allocator<T, D, A>::~delegate_allocator()
 {
     if (--m_delegate->ref_count == 0)
         destroy_delegate(m_delegate);
@@ -182,8 +182,8 @@ delegated_allocator<T, D, A>::~delegated_allocator()
 // Copy Assignment Operator
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>&
-delegated_allocator<T, D, A>::operator=(delegated_allocator const& rhs)
+delegate_allocator<T, D, A>&
+delegate_allocator<T, D, A>::operator=(delegate_allocator const& rhs)
 {
     // Copy the decorated allocator.
 
@@ -202,8 +202,8 @@ delegated_allocator<T, D, A>::operator=(delegated_allocator const& rhs)
 // Move Assignment Operator
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>&
-delegated_allocator<T, D, A>::operator=(delegated_allocator&& rhs)
+delegate_allocator<T, D, A>&
+delegate_allocator<T, D, A>::operator=(delegate_allocator&& rhs)
 {
     // Move the decorated allocator.
 
@@ -222,35 +222,35 @@ delegated_allocator<T, D, A>::operator=(delegated_allocator&& rhs)
 // Methods Modeling Allocator
 
 template <typename T, typename D, typename A>
-typename delegated_allocator<T, D, A>::pointer
-delegated_allocator<T, D, A>::allocate(size_type n)
+typename delegate_allocator<T, D, A>::pointer
+delegate_allocator<T, D, A>::allocate(size_type n)
 {
     return m_delegate->allocate(static_cast<A&>(*this), n);
 }
 
 template <typename T, typename D, typename A>
-typename delegated_allocator<T, D, A>::pointer
-delegated_allocator<T, D, A>::allocate(size_type n, const_void_pointer u)
+typename delegate_allocator<T, D, A>::pointer
+delegate_allocator<T, D, A>::allocate(size_type n, const_void_pointer u)
 {
     return m_delegate->allocate(static_cast<A&>(*this), n, u);
 }
 
 template <typename T, typename D, typename A>
-void delegated_allocator<T, D, A>::deallocate(pointer p, size_type n) noexcept
+void delegate_allocator<T, D, A>::deallocate(pointer p, size_type n) noexcept
 {
     m_delegate->deallocate(static_cast<A&>(*this), p, n);
 }
 
 template <typename T, typename D, typename A>
-typename delegated_allocator<T, D, A>::size_type
-delegated_allocator<T, D, A>::max_size() const
+typename delegate_allocator<T, D, A>::size_type
+delegate_allocator<T, D, A>::max_size() const
 {
     return m_delegate->max_size(static_cast<A const&>(*this));
 }
 
 template <typename T, typename D, typename A>
 template <typename C, typename... Args>
-void delegated_allocator<T, D, A>::construct(C* c, Args&&... args)
+void delegate_allocator<T, D, A>::construct(C* c, Args&&... args)
 {
     m_delegate->construct(
             static_cast<A&>(*this)
@@ -260,16 +260,16 @@ void delegated_allocator<T, D, A>::construct(C* c, Args&&... args)
 
 template <typename T, typename D, typename A>
 template <typename C>
-void delegated_allocator<T, D, A>::destroy(C* c)
+void delegate_allocator<T, D, A>::destroy(C* c)
 {
     m_delegate->destroy(static_cast<A&>(*this), c);
 }
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>
-delegated_allocator<T, D, A>::select_on_container_copy_construction() const
+delegate_allocator<T, D, A>
+delegate_allocator<T, D, A>::select_on_container_copy_construction() const
 {
-    return delegated_allocator(
+    return delegate_allocator(
             m_delegate->select_on_container_copy_construction(
                 static_cast<A const&>(*this)) );
 }
@@ -277,13 +277,13 @@ delegated_allocator<T, D, A>::select_on_container_copy_construction() const
 // Other Methods
 
 template <typename T, typename D, typename A>
-A delegated_allocator<T, D, A>::get_allocator() const
+A delegate_allocator<T, D, A>::get_allocator() const
 {
     return static_cast<A const&>(*this);
 }
 
 template <typename T, typename D, typename A>
-D delegated_allocator<T, D, A>::get_delegate() const
+D delegate_allocator<T, D, A>::get_delegate() const
 {
     return static_cast<D const&>(*m_delegate);
 }
@@ -292,28 +292,28 @@ D delegated_allocator<T, D, A>::get_delegate() const
 
 template <typename T, typename D, typename A>
 bool unbuggy::operator==(
-        delegated_allocator<T, D, A> const& a1
-      , delegated_allocator<T, D, A> const& a2) noexcept
+        delegate_allocator<T, D, A> const& a1
+      , delegate_allocator<T, D, A> const& a2) noexcept
 {
     return a1.get_allocator() == a2.get_allocator();
 }
 
 template <typename T, typename D, typename A>
 bool unbuggy::operator!=(
-        delegated_allocator<T, D, A> const& a1
-      , delegated_allocator<T, D, A> const& a2) noexcept
+        delegate_allocator<T, D, A> const& a1
+      , delegate_allocator<T, D, A> const& a2) noexcept
 {
     return !(a1 == a2);
 }
 
 template <typename T, typename D, typename A, typename U>
 bool unbuggy::operator==(
-        delegated_allocator<
+        delegate_allocator<
             T
           , D
           , A
         > const& a
-      , delegated_allocator<
+      , delegate_allocator<
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>
@@ -324,12 +324,12 @@ bool unbuggy::operator==(
 
 template <typename T, typename D, typename A, typename U>
 bool unbuggy::operator!=(
-        delegated_allocator<
+        delegate_allocator<
             T
           , D
           , A
         > const& a
-      , delegated_allocator<
+      , delegate_allocator<
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>

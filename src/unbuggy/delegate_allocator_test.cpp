@@ -1,10 +1,10 @@
-/// \file delegated_allocator_test.cpp
+/// \file delegate_allocator_test.cpp
 ///
 /// \copyright Copyright 2013 Unbuggy Software LLC.  All rights reserved.
 ///
 /// \cond TEST
 
-#include "unbuggy/delegated_allocator.hpp"
+#include "unbuggy/delegate_allocator.hpp"
 
 #include "unbuggy/null_allocator_delegate.hpp"
 
@@ -71,14 +71,14 @@ struct V {                  // a type convertible to T
     }
 };
 
-typedef unbuggy::delegated_allocator<T, unbuggy::null_allocator_delegate> X;
-typedef unbuggy::delegated_allocator<U, unbuggy::null_allocator_delegate> Y;
+typedef unbuggy::delegate_allocator<T, unbuggy::null_allocator_delegate> X;
+typedef unbuggy::delegate_allocator<U, unbuggy::null_allocator_delegate> Y;
 
 typedef std::allocator_traits<X> XX;
 typedef std::allocator_traits<Y> YY;
 
 typedef std::allocator_traits<std::allocator<T> > A;
-    // convenient for testing delegated_allocator
+    // convenient for testing delegate_allocator
 
 void test_standard_requirements()
 {
@@ -329,14 +329,14 @@ void test_further_requirements()
 {
 #if 0
 
-    // A default-constructed delegated_allocator must default-construct its
+    // A default-constructed delegate_allocator must default-construct its
     // underlying allocator.
 
     std::allocator<T>             a0;
     X                             a;        assert(a.get_allocator() == a0);
-    unbuggy::delegated_allocator<T, X> b;        assert(b.get_allocator() == a);
+    unbuggy::delegate_allocator<T, X> b;        assert(b.get_allocator() == a);
 
-    // A value-constructed delegated_allocator must wrap the supplied allocator.
+    // A value-constructed delegate_allocator must wrap the supplied allocator.
 
     X a1( a0 );                             assert(a1.get_allocator() == a0);
 
@@ -390,7 +390,7 @@ void test_further_requirements()
 
     // Allocators in the same copy group must share counts, even when rebound.
 
-    typedef unbuggy::delegated_allocator<C> Z;
+    typedef unbuggy::delegate_allocator<C> Z;
     typedef std::allocator_traits<Z>   ZZ;
 
     Z c( a );

@@ -15,9 +15,11 @@ Allocators
 ----------
 ### Level 1
 
+_There are no level-1 allocators._
+
 ### Level 2
 
-`delegated_allocator`
+`delegate_allocator`
   : decorates an `Allocator`
   : shares ownership of an `AllocatorDelegate`
   : forwards method calls to `AllocatorDelegate`, passing decorated `Allocator`
@@ -26,22 +28,22 @@ Allocators
   : allocates memory from a growable pool
 
         template <typename A>
-        using auto_allocator = delegated_allocator<A, auto_allocator_delegate>;
+        using auto_allocator = delegate_allocator<A, auto_allocator_delegate>;
 
-`counting_allocator`
+`counted_allocator`
   : counts calls to all `Allocator` methods
   : counts allocated and deallocated objects
 
         template <typename A>
-        using counting_allocator =
-            delegated_allocator<A, counting_allocator_delegate>;
+        using counted_allocator =
+            delegate_allocator<A, counted_allocator_delegate>;
 
 `finite_allocator`
   : allocates memory from a finite buffer
 
         template <typename A>
         using finite_allocator =
-            delegated_allocator<A, finite_allocator_delegate>;
+            delegate_allocator<A, finite_allocator_delegate>;
 
 Delegates
 ---------
@@ -51,7 +53,7 @@ Delegates
   : allocates memory from a growable pool
   : grows pool using parameter `Allocator`
 
-`counting_allocator_delegate`
+`counted_allocator_delegate`
   : counts calls to all `Allocator` methods
   : counts allocated and deallocated objects
 
@@ -62,7 +64,7 @@ Delegates
 
 `null_allocator_delegate`
   : simply passes all calls to leading `Allocator` parameter
-  : used to test `delegated_allocator`
+  : used to test `delegate_allocator`
   : may be used as partial implementation of other delegates
 
 <style>
