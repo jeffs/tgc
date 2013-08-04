@@ -16,7 +16,7 @@ namespace unbuggy {
     }
 
     template <typename A, typename P>
-    typename std::allocator_traits<A>::pointer 
+    typename std::allocator_traits<A>::pointer
     null_allocator_delegate::allocate(
             A&                                           a
           , typename std::allocator_traits<A>::size_type n

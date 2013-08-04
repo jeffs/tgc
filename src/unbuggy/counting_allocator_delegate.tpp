@@ -54,7 +54,8 @@ namespace unbuggy {
 
         // All, current, and max memory
 
-        std::size_t m = n * sizeof(typename std::allocator_traits<A>::value_type);
+        std::size_t m =
+            n * sizeof(typename std::allocator_traits<A>::value_type);
 
         m_allocated_memory_all += m;
         m_allocated_memory     += m;
@@ -67,13 +68,41 @@ namespace unbuggy {
     }
 
     template <typename A, typename P>
-    typename std::allocator_traits<A>::pointer 
+    typename std::allocator_traits<A>::pointer
     counting_allocator_delegate::allocate(
             A&                                           a
           , typename std::allocator_traits<A>::size_type n
           , P                                            hint)
     {
-        return std::allocator_traits<A>::allocate(a, n, hint);
+        // Calls
+
+        ++m_allocate_calls;
+
+        typename std::allocator_traits<A>::pointer r =
+            std::allocator_traits<A>::allocate(a, n, hint);     // may throw
+
+        // All, current, and max objects
+
+        m_allocated_objects_all += n;
+        m_allocated_objects     += n;
+
+        if (m_allocated_objects > 0 &&
+                std::size_t( m_allocated_objects ) > m_allocated_objects_max)
+            m_allocated_objects_max = m_allocated_objects;
+
+        // All, current, and max memory
+
+        std::size_t m =
+            n * sizeof(typename std::allocator_traits<A>::value_type);
+
+        m_allocated_memory_all += m;
+        m_allocated_memory     += m;
+
+        if (m_allocated_memory > 0 &&
+                std::size_t( m_allocated_memory ) > m_allocated_memory_max)
+            m_allocated_memory_max = m_allocated_memory;
+
+        return r;
     }
 
     template <typename A>
@@ -82,7 +111,30 @@ namespace unbuggy {
           , typename std::allocator_traits<A>::pointer   p
           , typename std::allocator_traits<A>::size_type n) noexcept
     {
-        return std::allocator_traits<A>::deallocate(a, p, n);
+        // Calls
+
+        ++m_deallocate_calls;
+
+        std::allocator_traits<A>::deallocate(a, p, n);
+
+        // All, current, and min objects
+
+        m_deallocated_objects_all += n;
+        m_allocated_objects       -= n;
+
+        if (m_allocated_objects < m_allocated_objects_min)
+            m_allocated_objects_min = m_allocated_objects;
+
+        // All, current, and min memory
+
+        std::size_t m =
+            n * sizeof(typename std::allocator_traits<A>::value_type);
+
+        m_deallocated_memory_all += m;
+        m_allocated_memory       -= m;
+
+        if (m_allocated_memory < m_allocated_memory_min)
+            m_allocated_memory_min = m_allocated_memory;
     }
 
     template <typename A, typename C, typename... Args>
