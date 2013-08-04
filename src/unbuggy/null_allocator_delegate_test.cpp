@@ -125,12 +125,11 @@ test_allocator test_allocator::select_on_container_copy_construction() const
 
 int main()
 {
-    test_allocator                          a;
-    test_allocator const&                   ac = a;
-    unbuggy::null_allocator_delegate        d;
-    unbuggy::null_allocator_delegate const& dc = d;
+    test_allocator                   a;
+    unbuggy::null_allocator_delegate d;
+    std::allocator<U>                b;
+    std::allocator<U> const&         bc = b;
 
-    std::allocator<U> b;
     U*       c = b.allocate(2);
     U const* h = c;  // hint
 
@@ -138,7 +137,7 @@ int main()
     int* q = d.allocate(a, 69, h);  assert(a.invoked_allocate_with_hint == 69);
     d.deallocate(a, p, 42);         assert(a.invoked_deallocate         == 42);
     d.deallocate(a, q, 69);         assert(a.invoked_deallocate         == 69);
-                                    assert(dc.max_size(b)    == ac.max_size());
+    auto z = d.max_size(bc);        assert(b.max_size()                 ==  z);
     d.construct(a, c, 2);           assert(U::constructor_count         ==  1);
                                     assert(c->value                     ==  2);
     d.destroy(a, c);                assert(U::destructor_count          ==  1);
