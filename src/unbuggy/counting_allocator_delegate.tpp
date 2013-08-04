@@ -7,7 +7,7 @@
 namespace unbuggy {
 
     inline
-    counting_allocator_delegate::counting_allocator_delegate( )
+    counting_allocator_delegate::counting_allocator_delegate( ) noexcept
       : m_allocate_calls( )
       , m_allocated_memory_all( )
       , m_allocated_memory_max( )
@@ -36,7 +36,34 @@ namespace unbuggy {
             A&                                           a
           , typename std::allocator_traits<A>::size_type n)
     {
-        return std::allocator_traits<A>::allocate(a, n);
+        // Calls
+
+        ++m_allocate_calls;
+
+        typename std::allocator_traits<A>::pointer r =
+            std::allocator_traits<A>::allocate(a, n);   // may throw
+
+        // All, current, and max objects
+
+        m_allocated_objects_all += n;
+        m_allocated_objects     += n;
+
+        if (m_allocated_objects > 0 &&
+                std::size_t( m_allocated_objects ) > m_allocated_objects_max)
+            m_allocated_objects_max = m_allocated_objects;
+
+        // All, current, and max memory
+
+        std::size_t m = n * sizeof(typename std::allocator_traits<A>::value_type);
+
+        m_allocated_memory_all += m;
+        m_allocated_memory     += m;
+
+        if (m_allocated_memory > 0 &&
+                std::size_t( m_allocated_memory ) > m_allocated_memory_max)
+            m_allocated_memory_max = m_allocated_memory;
+
+        return r;
     }
 
     template <typename A, typename P>

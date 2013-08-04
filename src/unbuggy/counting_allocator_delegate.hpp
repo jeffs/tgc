@@ -44,7 +44,7 @@ class counting_allocator_delegate {
 
     // Default Constructor
 
-    counting_allocator_delegate( );
+    counting_allocator_delegate( ) noexcept;
         ///< Initializes all counts to zero.
 
     // Copy Constructor         = default
@@ -56,13 +56,13 @@ class counting_allocator_delegate {
     // Methods Modeling AllocatorDelegate
 
     template <typename A>
-    static typename std::allocator_traits<A>::pointer allocate(
+    typename std::allocator_traits<A>::pointer allocate(
             A& a
           , typename std::allocator_traits<A>::size_type n);
         ///< Returns the result of <code>a.allocate(n)</code>.
 
     template <typename A, typename P>
-    static typename std::allocator_traits<A>::pointer allocate(
+    typename std::allocator_traits<A>::pointer allocate(
             A&                                                    a
           , typename std::allocator_traits<A>::size_type          n
           , P                                                     hint);
@@ -70,26 +70,26 @@ class counting_allocator_delegate {
         /// \c const_pointer type of (\c A or) some rebind of \c A.
 
     template <typename A>
-    static void deallocate(
+    void deallocate(
             A&                                           a
           , typename std::allocator_traits<A>::pointer   p
           , typename std::allocator_traits<A>::size_type n) noexcept;
         ///< Returns the result of <code>a.deallocate(p, n)</code>.
 
     template <typename A, typename C, typename... Args>
-    static void construct(A& a, C* c, Args&&... args);
+    void construct(A& a, C* c, Args&&... args);
         ///< Returns the result of <code>a.construct(c, args...)</code>.
 
     template <typename A, typename C>
-    static void destroy(A& a, C* c);
+    void destroy(A& a, C* c);
         ///< Returns the result of <code>a.destroy(c)</code>.
 
     template <typename A>
-    static typename std::allocator_traits<A>::size_type max_size(A const& a);
+    typename std::allocator_traits<A>::size_type max_size(A const& a);
         ///< Returns the result of <code>a.max_size()</code>.
 
     template <typename A>
-    static A select_on_container_copy_construction(A const& a);
+    A select_on_container_copy_construction(A const& a);
         ///< Decorates the result of
         ///  <code>a.select_on_container_copy_construction()</code>.
         ///  If the result of that method is equal to 
@@ -174,7 +174,6 @@ class counting_allocator_delegate {
     std::size_t select_on_container_copy_construction_calls() const;
         ///< Returns the number of times \c
         ///  select_on_container_copy_construction_calls has been called.
-
 };
 
 }   /// \namespace unbuggy
