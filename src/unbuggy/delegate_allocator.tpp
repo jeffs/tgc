@@ -17,6 +17,18 @@ namespace delegate_allocator_details {
 }
 /// \endcond
 
+// Private Constructors
+
+template <typename T, typename D, typename A>
+delegate_allocator<T, D, A>::delegate_allocator(
+        shared_delegate* d
+      , A const&         a )
+  : A( d->select_on_container_copy_construction(a) )
+  , m_delegate( d )
+{
+    ++m_delegate->ref_count;
+}
+
 // Private Methods
 
 template <typename T, typename D, typename A>
@@ -269,9 +281,7 @@ template <typename T, typename D, typename A>
 delegate_allocator<T, D, A>
 delegate_allocator<T, D, A>::select_on_container_copy_construction() const
 {
-    return delegate_allocator(
-            m_delegate->select_on_container_copy_construction(
-                static_cast<A const&>(*this)) );
+    return delegate_allocator( m_delegate, static_cast<A const&>(*this) );
 }
 
 // Other Methods

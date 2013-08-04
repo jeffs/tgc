@@ -39,6 +39,8 @@ class delegate_allocator
 
 /// \endcond
 {
+    // Private Types
+
     typedef delegate_allocator_details::shared_delegate<D> shared_delegate;
 
     // Defines allocator and traits types for use with shared_delegate.
@@ -57,8 +59,18 @@ class delegate_allocator
     template <typename U, typename E, typename B>
     friend class unbuggy::delegate_allocator;
 
+    // Data
+
     shared_delegate* m_delegate;
         // shared by all allocators in this copy group
+
+    // Private Constructors
+
+    delegate_allocator( shared_delegate* d, A const& a );
+        // Share \a d, and decorate the result of
+        // select_on_container_copy_construction on \a a.
+
+    // Private Methods
 
     shared_delegate* create_delegate() const;
         // Create and return a shared delegate having reference count 1.
