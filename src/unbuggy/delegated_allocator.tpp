@@ -66,7 +66,7 @@ delegated_allocator<T, D, A>::delegated_allocator( )
 
 template <typename T, typename D, typename A>
 delegated_allocator<T, D, A>::delegated_allocator(
-        delegated_allocator const& original )
+        delegated_allocator const& original ) noexcept
   : A( static_cast<A const&>(original) )
   , m_delegate( original.m_delegate )
 {
@@ -77,7 +77,7 @@ delegated_allocator<T, D, A>::delegated_allocator(
 
 template <typename T, typename D, typename A>
 delegated_allocator<T, D, A>::delegated_allocator(
-        delegated_allocator&& original )
+        delegated_allocator&& original ) noexcept
   : A( std::move(static_cast<A&>(original)) )
   , m_delegate( original.m_delegate )
 {
@@ -93,7 +93,7 @@ delegated_allocator<T, D, A>::delegated_allocator(
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>
-        > const& original )
+        > const& original ) noexcept
   : A( static_cast<
           typename std::allocator_traits<A>::template rebind_alloc<U> const&
        >(original) )
@@ -111,7 +111,7 @@ delegated_allocator<T, D, A>::delegated_allocator(
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>
-        >&& original )
+        >&& original ) noexcept
   : A( static_cast<
           typename std::allocator_traits<A>::template rebind_alloc<U>&&
        >(original) )
@@ -123,13 +123,13 @@ delegated_allocator<T, D, A>::delegated_allocator(
 // Explicit Constructors
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( A const& a )
+delegated_allocator<T, D, A>::delegated_allocator( A const& a ) noexcept
   : A( a )
   , m_delegate( create_delegate() )
 { }
 
 template <typename T, typename D, typename A>
-delegated_allocator<T, D, A>::delegated_allocator( A&& a )
+delegated_allocator<T, D, A>::delegated_allocator( A&& a ) noexcept
   : A( std::move(a) )
   , m_delegate( create_delegate() )
 { }
@@ -223,15 +223,22 @@ delegated_allocator<T, D, A>::operator=(delegated_allocator&& rhs)
 
 template <typename T, typename D, typename A>
 typename delegated_allocator<T, D, A>::pointer
+delegated_allocator<T, D, A>::allocate(size_type n)
+{
+    return m_delegate->allocate(static_cast<A&>(*this), n);
+}
+
+template <typename T, typename D, typename A>
+typename delegated_allocator<T, D, A>::pointer
 delegated_allocator<T, D, A>::allocate(size_type n, const_void_pointer u)
 {
     return m_delegate->allocate(static_cast<A&>(*this), n, u);
 }
 
 template <typename T, typename D, typename A>
-void delegated_allocator<T, D, A>::deallocate(pointer p, size_type n)
+void delegated_allocator<T, D, A>::deallocate(pointer p, size_type n) noexcept
 {
-    m_delegate->deallocate(static_cast<A&>(*this), n);
+    m_delegate->deallocate(static_cast<A&>(*this), p, n);
 }
 
 template <typename T, typename D, typename A>
@@ -245,14 +252,17 @@ template <typename T, typename D, typename A>
 template <typename C, typename... Args>
 void delegated_allocator<T, D, A>::construct(C* c, Args&&... args)
 {
-    m_delegate->construct(static_cast<A&>(*this), std::forward<Args>(args)...);
+    m_delegate->construct(
+            static_cast<A&>(*this)
+          , c
+          , std::forward<Args>(args)...);
 }
 
 template <typename T, typename D, typename A>
 template <typename C>
 void delegated_allocator<T, D, A>::destroy(C* c)
 {
-    m_delegate->destroy(static_cast<A&>(*this));
+    m_delegate->destroy(static_cast<A&>(*this), c);
 }
 
 template <typename T, typename D, typename A>
@@ -283,7 +293,7 @@ D delegated_allocator<T, D, A>::get_delegate() const
 template <typename T, typename D, typename A>
 bool unbuggy::operator==(
         delegated_allocator<T, D, A> const& a1
-      , delegated_allocator<T, D, A> const& a2)
+      , delegated_allocator<T, D, A> const& a2) noexcept
 {
     return a1.get_allocator() == a2.get_allocator();
 }
@@ -291,7 +301,7 @@ bool unbuggy::operator==(
 template <typename T, typename D, typename A>
 bool unbuggy::operator!=(
         delegated_allocator<T, D, A> const& a1
-      , delegated_allocator<T, D, A> const& a2)
+      , delegated_allocator<T, D, A> const& a2) noexcept
 {
     return !(a1 == a2);
 }
@@ -307,7 +317,7 @@ bool unbuggy::operator==(
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>
-        > const& b)
+        > const& b) noexcept
 {
     return a.get_allocator() == b.get_allocator();
 }
@@ -323,7 +333,7 @@ bool unbuggy::operator!=(
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>
-        > const& b)
+        > const& b) noexcept
 {
     return !(a == b);
 }

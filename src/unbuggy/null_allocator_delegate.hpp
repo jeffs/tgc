@@ -19,12 +19,13 @@ struct null_allocator_delegate {
           , typename std::allocator_traits<A>::size_type n);
         ///< Returns the result of <code>a.allocate(n)</code>.
 
-    template <typename A>
+    template <typename A, typename P>
     static typename std::allocator_traits<A>::pointer allocate(
             A&                                                    a
           , typename std::allocator_traits<A>::size_type          n
-          , typename std::allocator_traits<A>::const_void_pointer hint);
-        ///< Returns the result of <code>a.allocate(n, hint)</code>.
+          , P                                                     hint);
+        ///< Returns the result of <code>a.allocate(n, hint)</code>.  \c P is
+        /// \c const_pointer type of (\c A or) some rebind of \c A.
 
     template <typename A>
     static void deallocate(
@@ -46,11 +47,13 @@ struct null_allocator_delegate {
         ///< Returns the result of <code>a.max_size()</code>.
 
     template <typename A>
-    static A select_on_container_copy_construction(const A& a);
-        ///< Returns the result of
+    static A select_on_container_copy_construction(A const& a);
+        ///< Decorates the result of
         ///  <code>a.select_on_container_copy_construction()</code>.
+        ///  If the result of that method is equal to 
 };
 
 }   /// \namespace unbuggy
 
+#include "unbuggy/null_allocator_delegate.tpp"
 #endif

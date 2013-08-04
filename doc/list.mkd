@@ -33,13 +33,15 @@ Allocators
   : counts allocated and deallocated objects
 
         template <typename A>
-        using counting_allocator = delegated_allocator<A, counting_allocator_delegate>;
+        using counting_allocator =
+            delegated_allocator<A, counting_allocator_delegate>;
 
 `finite_allocator`
   : allocates memory from a finite buffer
 
         template <typename A>
-        using finite_allocator = delegated_allocator<A, finite_allocator_delegate>;
+        using finite_allocator =
+            delegated_allocator<A, finite_allocator_delegate>;
 
 Delegates
 ---------

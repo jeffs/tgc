@@ -54,6 +54,9 @@ class delegated_allocator
             // Standard traits of the rebound allocator type.
     };
 
+    template <typename U, typename E, typename B>
+    friend class unbuggy::delegated_allocator;
+
     shared_delegate* m_delegate;
         // shared by all allocators in this copy group
 
@@ -91,6 +94,19 @@ class delegated_allocator
                                         propagate_on_container_swap;
     ///@}
 
+    /// Provides a typedef for a \c delegated_allocator of a \c different
+    /// value_type.
+    ///
+    template <typename U>
+    struct rebind {
+        typedef delegated_allocator<
+                    U
+                  , D
+                  , typename std::allocator_traits<A>::template rebind_alloc<U>
+                > other;
+            ///< The rebound allocator type.
+    };
+
     // Default Constructor
 
     delegated_allocator( );
@@ -98,12 +114,12 @@ class delegated_allocator
 
     // Copy Constructor
 
-    delegated_allocator( delegated_allocator const& original );
+    delegated_allocator( delegated_allocator const& original ) noexcept;
         ///< Copies \a original.
 
     // Move Constructor
 
-    delegated_allocator( delegated_allocator&& original );
+    delegated_allocator( delegated_allocator&& original ) noexcept;
         ///< Moves the underlying allocator from \a original.
 
     // Copy Conversion Constructor
@@ -114,7 +130,7 @@ class delegated_allocator
                 U
               , D
               , typename std::allocator_traits<A>::template rebind_alloc<U>
-            > const& original);
+            > const& original) noexcept;
         ///< Rebinds and decorates the underlying allocator of \a original.
 
     // Move Conversion Constructor
@@ -125,7 +141,7 @@ class delegated_allocator
                 U
               , D
               , typename std::allocator_traits<A>::template rebind_alloc<U>
-            >&& original);
+            >&& original) noexcept;
         ///< Rebinds and decorates the underlying allocator of \a original.
 
     // Explicit Constructors
@@ -134,8 +150,8 @@ class delegated_allocator
     /// d or \a a is not supplied, a default-constructed instance of \a D or \a
     /// A is used, respectively.
     ///@{
-    explicit delegated_allocator(             A const& a );
-    explicit delegated_allocator(             A&&      a );
+    explicit delegated_allocator(             A const& a ) noexcept;
+    explicit delegated_allocator(             A&&      a ) noexcept;
     explicit delegated_allocator( D const& d             );
     explicit delegated_allocator( D const& d, A const& a );
     explicit delegated_allocator( D const& d, A&&      a );
@@ -180,7 +196,7 @@ class delegated_allocator
         ///  the underlying allocator, or throws an exception if the space
         ///  cannot be allocated.
 
-    void deallocate(pointer p, size_type n);
+    void deallocate(pointer p, size_type n) noexcept;
         ///< Frees space for \a n objects beginning at address \a p.  The
         ///  behavior is undefined unless \a p was returned by a previous call
         ///  to \c allocate exactly \a n objects, and has not already been
@@ -190,9 +206,6 @@ class delegated_allocator
         ///< Returns the largest value that can meaningfully be passed to \c
         ///  allocate.  Note that \c allocate is not guaranteed to succeed.
 
-    delegated_allocator select_on_container_copy_construction() const;
-        ///< Wraps the corresponding function of the underlying allocator.
-
     template <typename C, typename... Args>
     void construct(C* c, Args&&... args);
         ///< Constructs an object of type \c C at \a c.  Supplies \a args to
@@ -201,6 +214,9 @@ class delegated_allocator
     template <typename C>
     void destroy(C* c);
         ///< Destroys the object at \a c.
+
+    delegated_allocator select_on_container_copy_construction() const;
+        ///< Wraps the corresponding function of the underlying allocator.
 
     // Other Methods
 
@@ -214,13 +230,13 @@ class delegated_allocator
 template <typename T, typename D, typename A>
 bool operator==(
         delegated_allocator<T, D, A> const& a1
-      , delegated_allocator<T, D, A> const& a2);
+      , delegated_allocator<T, D, A> const& a2) noexcept;
     ///< True if memory from one allocator may be deallocated by the other.
 
 template <typename T, typename D, typename A>
 bool operator!=(
         delegated_allocator<T, D, A> const& a1
-      , delegated_allocator<T, D, A> const& a2);
+      , delegated_allocator<T, D, A> const& a2) noexcept;
     ///< Equivalent to <code>!(a1 == a2)</code>.
 
 template <typename T, typename D, typename A, typename U>
@@ -234,7 +250,7 @@ bool operator==(
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>
-        > const& b);
+        > const& b) noexcept;
     ///< True if <code>a == X(b)</code>, where \c X is the type of \a a.
 
 template <typename T, typename D, typename A, typename U>
@@ -248,7 +264,7 @@ bool operator!=(
             U
           , D
           , typename std::allocator_traits<A>::template rebind_alloc<U>
-        > const& b);
+        > const& b) noexcept;
     ///< Equivalent to <code>!(a == b)</code>.
 
 }  /// \namespace unbuggy

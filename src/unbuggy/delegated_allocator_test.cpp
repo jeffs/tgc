@@ -90,15 +90,6 @@ void test_standard_requirements()
     Y       b;
     C*      c;
 
-    (void)t;
-    (void)a;
-    (void)a1;
-    (void)a2;
-    (void)b;
-    (void)c;
-
-#if 0
-
     assert(a1 == a);        // prerequisite for initialization of p
 
     XX::pointer            p = a1.allocate(42);         // size matches n
@@ -112,10 +103,21 @@ void test_standard_requirements()
     V                      v;
     XX::size_type          n = 42;                      // size matches p
 
+    (void)a2;
+    (void)c;
+    (void)n;
+    (void)r;
+    (void)s;
+    (void)t;
+    (void)u;
+    (void)v;
+    (void)w;
+    (void)z;
+
     // [allocator.requirements] requires that \c std::allocator_traits<A>
     // define the following types, and that objects of these types support
-    // various intuitive syntax.  This test simply checks that the types match
-    // those for the underlying standard allocator type.
+    // various intuitive syntax.  The following code simply checks that the
+    // types match those for the underlying standard allocator type.
 
 #define CHECK_TYPE(type)                                            \
     static_assert(                                                  \
@@ -138,10 +140,10 @@ void test_standard_requirements()
     // Table 28 - Allocator requirements
 
     // Expression: X::const_pointer
-    (void)X::const_pointer(      X::pointer( ) );
+    (void)X::const_pointer( X::pointer( ) );
 
     // Expression: X::void_pointer, Y::void_pointer
-    (void)X::void_pointer(       X::pointer( ) );
+    (void)X::void_pointer( X::pointer( ) );
     static_assert(
             std::is_same<X::void_pointer, Y::void_pointer>( )
           , "X::void_pointer and Y::void_pointer must be the same type.");
@@ -325,6 +327,8 @@ void test_standard_requirements()
 
 void test_further_requirements()
 {
+#if 0
+
     // A default-constructed delegated_allocator must default-construct its
     // underlying allocator.
 
