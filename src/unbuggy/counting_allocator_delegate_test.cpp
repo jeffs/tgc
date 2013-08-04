@@ -1,10 +1,10 @@
-/// \file null_allocator_delegate_test.cpp
+/// \file counting_allocator_delegate_test.cpp
 ///
 /// \copyright Copyright 2013 Unbuggy Software LLC.  All rights reserved.
 ///
 /// \cond TEST
 
-#include "unbuggy/null_allocator_delegate.hpp"
+#include "unbuggy/counting_allocator_delegate.hpp"
 
 #include <cassert>      // assert
 
@@ -123,12 +123,12 @@ test_allocator test_allocator::select_on_container_copy_construction() const
     return super_traits::select_on_container_copy_construction(*this);
 }
 
-int main()
+void test_allocator_delegate_requirements()
 {
-    test_allocator                          a;
-    test_allocator const&                   ac = a;
-    unbuggy::null_allocator_delegate        d;
-    unbuggy::null_allocator_delegate const& dc = d;
+    test_allocator                              a;
+    test_allocator const&                       ac = a;
+    unbuggy::counting_allocator_delegate        d;
+    unbuggy::counting_allocator_delegate const& dc = d;
 
     std::allocator<U> b;
     U*       c = b.allocate(2);
@@ -143,6 +143,11 @@ int main()
                                     assert(c->value                     ==  2);
     d.destroy(a, c);                assert(U::destructor_count          ==  1);
     b.deallocate(c, 2);
+}
+
+int main()
+{
+    test_allocator_delegate_requirements();
 }
 
 /// \endcond

@@ -3,27 +3,42 @@ CPPFLAGS = -I..
 CXXFLAGS = -std=c++11 -pedantic -Wall -stdlib=libc++
 LDFLAGS = -stdlib=libc++
 
-.PHONY: clean doc test
+.PHONY: clean doc test test_level1 test_level2
 
-test: delegate_allocator_test null_allocator_delegate_test
-	./delegate_allocator_test
+test: test_level1 test_level2
+
+# Level 1
+
+test_level1: \
+    counting_allocator_delegate_test \
+    null_allocator_delegate_test
+	./counting_allocator_delegate_test
 	./null_allocator_delegate_test
 
-#test: info_allocator_test usage
-#	./info_allocator_test
-#	./usage < Makefile >/dev/null
-
-info_allocator_test: info_allocator_test.o info_allocator.o
+counting_allocator_delegate_test: \
+    counting_allocator_delegate_test.o \
+    counting_allocator_delegate.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
+
+null_allocator_delegate_test: \
+    null_allocator_delegate_test.o \
+    null_allocator_delegate.o
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+# Level 2
+
+test_level2: delegate_allocator_test
+	./delegate_allocator_test
 
 delegate_allocator_test: delegate_allocator_test.o delegate_allocator.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-null_allocator_delegate_test: null_allocator_delegate_test.o null_allocator_delegate.o
-	$(CXX) -o $@ $^ $(LDFLAGS)
+# Usage
 
 usage: usage.o info_allocator.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
+
+# Rules
 
 %.o: %.cpp %.hpp
 	$(CXX) -o $@ $(CPPFLAGS) $(CXXFLAGS) -c $<

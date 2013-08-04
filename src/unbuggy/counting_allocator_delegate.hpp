@@ -17,7 +17,30 @@ namespace unbuggy {
 /// been destroyed; rather, it indicates the difference between the number of
 /// constructions and destructions performed by a single delegate.
 ///
-struct counting_allocator_delegate {
+class counting_allocator_delegate {
+
+    std::size_t    m_allocate_calls;
+    std::size_t    m_allocated_memory_all;
+    std::size_t    m_allocated_memory_max;
+    std::size_t    m_allocated_objects_all;
+    std::size_t    m_allocated_objects_max;
+    std::size_t    m_construct_calls;
+    std::size_t    m_constructed_objects_all;
+    std::size_t    m_constructed_objects_max;
+    std::size_t    m_deallocate_calls;
+    std::size_t    m_deallocated_memory_all;
+    std::size_t    m_deallocated_objects_all;
+    std::size_t    m_destroy_calls;
+    std::size_t    m_max_size_calls;
+    std::size_t    m_select_on_container_copy_construction_calls;
+    std::ptrdiff_t m_allocated_memory;
+    std::ptrdiff_t m_allocated_memory_min;
+    std::ptrdiff_t m_allocated_objects;
+    std::ptrdiff_t m_allocated_objects_min;
+    std::ptrdiff_t m_constructed_objects;
+    std::ptrdiff_t m_constructed_objects_min;
+
+  public:
 
     // Default Constructor
 
@@ -26,8 +49,6 @@ struct counting_allocator_delegate {
 
     // Copy Constructor         = default
     // Move Constructor         = default
-    // Conversion Constructors  = none
-    // Explicit Constructors    = none
     // Destructor               = default
     // Copy Assignment Operator = default
     // Move Assignment Operator = default
@@ -117,7 +138,7 @@ struct counting_allocator_delegate {
     std::size_t deallocated_objects_all() const;
         ///< Returns the total number of deallocated objects.
 
-    std::size_t allocated_memory_all() const;
+    std::size_t deallocated_memory_all() const;
         ///< Returns the total amount of deallocated memory.
 
     std::size_t construct_calls() const;
