@@ -5,11 +5,17 @@ LDFLAGS = -stdlib=libc++
 
 .PHONY: clean doc test
 
-test: info_allocator_test usage
-	./info_allocator_test
-	./usage < Makefile >/dev/null
+test: delegated_allocator_test
+	./delegated_allocator_test
+
+#test: info_allocator_test usage
+#	./info_allocator_test
+#	./usage < Makefile >/dev/null
 
 info_allocator_test: info_allocator_test.o info_allocator.o
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+delegated_allocator_test: delegated_allocator_test.o delegated_allocator.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 usage: usage.o info_allocator.o

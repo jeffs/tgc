@@ -15,12 +15,12 @@ Allocators
 ----------
 ### Level 1
 
+### Level 2
+
 `delegated_allocator`
   : decorates an `Allocator`
   : shares ownership of an `AllocatorDelegate`
   : forwards method calls to `AllocatorDelegate`, passing decorated `Allocator`
-
-### Level 2
 
 `auto_allocator`
   : allocates memory from a growable pool
@@ -60,7 +60,8 @@ Delegates
 
 `null_allocator_delegate`
   : simply passes all calls to leading `Allocator` parameter
-  : useful as partial implementation of other delegates
+  : used to test `delegated_allocator`
+  : may be used as partial implementation of other delegates
 
 <style>
     dd p:first-child { margin-top: 0 }

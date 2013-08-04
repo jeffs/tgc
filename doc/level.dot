@@ -2,41 +2,33 @@ digraph Levels {
     compound=true;
     fontsize=12;
     node [shape=none];
+    style=invis;
 
     subgraph cluster_legend {
-        style=invis;
-        node [shape=none];
         edge [style=invis];
 
-        2 -> 1;
+        3 -> 2 -> 1;
     }
 
     subgraph cluster_level2 {
-        label="Level 1";
-        labeljust="l";
-        style=invis;
-
-        auto_allocator;
-        finite_allocator;
+             auto_allocator;
+           finite_allocator;
+        delegated_allocator;
     }
 
     subgraph cluster_level1 {
-        label="Level 1";
-        labeljust="l";
-        style=invis;
-
-        AllocatorDelegate;
+                  AllocatorDelegate;
+            auto_allocator_delegate;
+            null_allocator_delegate;
+          finite_allocator_delegate;
         counting_allocator_delegate;
-        delegated_allocator;
-        auto_allocator_delegate;
-        finite_allocator_delegate;
-        null_allocator_delegate;
     }
 
-    auto_allocator -> auto_allocator_delegate;
-    auto_allocator -> delegated_allocator;
-    counting_allocator -> delegated_allocator;
-    counting_allocator -> counting_allocator_delegate;
-    finite_allocator -> delegated_allocator;
-    finite_allocator -> finite_allocator_delegate;
+         auto_allocator ->         delegated_allocator;
+         auto_allocator ->     auto_allocator_delegate;
+       finite_allocator ->         delegated_allocator;
+       finite_allocator ->   finite_allocator_delegate;
+     counting_allocator ->         delegated_allocator;
+     counting_allocator -> counting_allocator_delegate;
+    delegated_allocator ->     null_allocator_delegate;     // for testing
 }
