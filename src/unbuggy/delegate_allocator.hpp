@@ -94,20 +94,27 @@ class delegate_allocator
     typedef typename std::allocator_traits<A>::value_type           value_type;
     typedef typename std::allocator_traits<A>::size_type             size_type;
     typedef typename std::allocator_traits<A>::difference_type difference_type;
+    ///@}
 
     typedef typename std::allocator_traits<A>::
                                         propagate_on_container_copy_assignment
                                         propagate_on_container_copy_assignment;
+        ///< Derived from \c true_type or \c false_type.  True if an allocator
+        ///  should be copied when a client container is copy-assigned.
+
     typedef typename std::allocator_traits<A>::
                                         propagate_on_container_move_assignment
                                         propagate_on_container_move_assignment;
+        ///< Derived from \c true_type or \c false_type.  True if an allocator
+        ///  should be moved when a client container is move-assigned.
+
     typedef typename std::allocator_traits<A>::
                                         propagate_on_container_swap
                                         propagate_on_container_swap;
-    ///@}
+        ///< Derived from \c true_type or \c false_type.  True if an allocator
+        ///  should be swapped when a client container is swapped
 
-    /// Provides a typedef for a \c delegate_allocator of a \c different
-    /// value_type.
+    /// Provides a \c delegate_allocator type for a specified \c value_type.
     ///
     template <typename U>
     struct rebind {
