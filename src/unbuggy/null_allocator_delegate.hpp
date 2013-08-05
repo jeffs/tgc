@@ -14,6 +14,9 @@ namespace unbuggy {
 struct null_allocator_delegate {
 
     template <typename A>
+    struct mixin { };
+
+    template <typename A>
     static typename std::allocator_traits<A>::pointer allocate(
             A& a
           , typename std::allocator_traits<A>::size_type n);

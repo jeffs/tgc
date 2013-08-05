@@ -1,14 +1,19 @@
-/// \file counting_allocator_delegate.hpp
+/// \file counting_allocator.hpp
 ///
 /// \copyright Copyright 2013 Unbuggy Software LLC.  All rights reserved.
 
-#ifndef UNBUGGY_INCLUDED_COUNTING_ALLOCATOR_DELEGATE
-#define UNBUGGY_INCLUDED_COUNTING_ALLOCATOR_DELEGATE
+#ifndef UNBUGGY_INCLUDED_COUNTING_ALLOCATOR
+#define UNBUGGY_INCLUDED_COUNTING_ALLOCATOR
+
+#include "unbuggy/delegate_allocator.hpp"
 
 #include <cstddef>  // ptrdiff_t, size_t
 #include <memory>   // allocator_traits
 
 namespace unbuggy {
+
+template <typename A>
+struct counting_allocator_mixin;
 
 /// Counts standard method calls, and object and memory allocations.  In method
 /// contracts, the term \e live is used to indicate allocations that exceed the
@@ -33,14 +38,18 @@ class counting_allocator_delegate {
     std::size_t    m_destroy_calls;
     std::size_t    m_max_size_calls;
     std::size_t    m_select_on_container_copy_construction_calls;
-    std::ptrdiff_t m_allocated_memory;
+    std::ptrdiff_t m_allocated_memory_now;
     std::ptrdiff_t m_allocated_memory_min;
-    std::ptrdiff_t m_allocated_objects;
+    std::ptrdiff_t m_allocated_objects_now;
     std::ptrdiff_t m_allocated_objects_min;
-    std::ptrdiff_t m_constructed_objects;
+    std::ptrdiff_t m_constructed_objects_now;
     std::ptrdiff_t m_constructed_objects_min;
 
   public:
+
+    template <typename A>
+    using mixin = counting_allocator_mixin<A>;
+        ///< Publicly inherited by the client allocator type \c A.
 
     // Default Constructor
 
@@ -112,7 +121,7 @@ class counting_allocator_delegate {
         ///  result is negative if, at any time, more objects had been
         ///  deallocated than allocated.
 
-    std::ptrdiff_t allocated_objects() const;
+    std::ptrdiff_t allocated_objects_now() const;
         ///< Returns the current number of live allocated objects.  The result
         ///  is negative if more objects have been deallocated than allocated.
 
@@ -128,7 +137,7 @@ class counting_allocator_delegate {
         ///  result is negative if, at any time, more memory had been
         ///  deallocated than allocated.
 
-    std::ptrdiff_t allocated_memory() const;
+    std::ptrdiff_t allocated_memory_now() const;
         ///< Returns the current amount of live allocated memory.  The result
         ///  is negative if more memory has been deallocated than allocated.
 
@@ -158,7 +167,7 @@ class counting_allocator_delegate {
         ///  result is negative if, at any time, more objects had been
         ///  destroyed than constructed.
 
-    std::ptrdiff_t constructed_objects() const;
+    std::ptrdiff_t constructed_objects_now() const;
         ///< Returns the current number of live constructed objects.  The
         ///  result is negative if more objects have been destroyed than
         ///  constructed.
@@ -176,7 +185,41 @@ class counting_allocator_delegate {
         ///  select_on_container_copy_construction_calls has been called.
 };
 
+/// Implementation of \c counting_allocator_delegate::mixin.
+///
+template <typename A>
+struct counting_allocator_mixin {
+
+    /// Invokes the corresponding method of the client allocator's delegate.
+    ///@{
+    std::size_t     allocate_calls()          const;
+    std::size_t     allocated_objects_all()   const;
+    std::size_t     allocated_objects_max()   const;
+    std::ptrdiff_t  allocated_objects_min()   const;
+    std::ptrdiff_t  allocated_objects_now()   const;
+    std::size_t     allocated_memory_all()    const;
+    std::size_t     allocated_memory_max()    const;
+    std::ptrdiff_t  allocated_memory_min()    const;
+    std::ptrdiff_t  allocated_memory_now()    const;
+    std::size_t     deallocate_calls()        const;
+    std::size_t     deallocated_objects_all() const;
+    std::size_t     deallocated_memory_all()  const;
+    std::size_t     construct_calls()         const;
+    std::size_t     constructed_objects_all() const;
+    std::size_t     constructed_objects_max() const;
+    std::ptrdiff_t  constructed_objects_min() const;
+    std::ptrdiff_t  constructed_objects_now() const;
+    std::size_t     destroy_calls()           const;
+    std::size_t     max_size_calls()          const;
+    std::size_t     select_on_container_copy_construction_calls() const;
+    ///@}
+};
+
+template <typename T, typename A =std::allocator<T> >
+using counting_allocator =
+    delegate_allocator<T, counting_allocator_delegate, A>;
+
 }   /// \namespace unbuggy
 
-#include "unbuggy/counting_allocator_delegate.tpp"
+#include "unbuggy/counting_allocator.tpp"
 #endif

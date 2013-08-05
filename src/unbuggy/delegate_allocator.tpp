@@ -287,15 +287,21 @@ delegate_allocator<T, D, A>::select_on_container_copy_construction() const
 // Other Methods
 
 template <typename T, typename D, typename A>
-A delegate_allocator<T, D, A>::get_allocator() const
+D& delegate_allocator<T, D, A>::delegate()
 {
-    return static_cast<A const&>(*this);
+    return *m_delegate;
 }
 
 template <typename T, typename D, typename A>
-D delegate_allocator<T, D, A>::get_delegate() const
+D const& delegate_allocator<T, D, A>::delegate() const
 {
-    return static_cast<D const&>(*m_delegate);
+    return *m_delegate;
+}
+
+template <typename T, typename D, typename A>
+A delegate_allocator<T, D, A>::get_allocator() const
+{
+    return static_cast<A const&>(*this);
 }
 
 }  /// \namespace unbuggy

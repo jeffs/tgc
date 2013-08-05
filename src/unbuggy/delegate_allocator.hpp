@@ -12,8 +12,9 @@ namespace unbuggy {
 /// \cond DETAILS
 namespace delegate_allocator_details {
 
-    template <typename D>
-    struct shared_delegate;
+template <typename D>
+struct shared_delegate;
+
 }
 /// \endcond
 
@@ -33,9 +34,10 @@ namespace delegate_allocator_details {
 ///
 template <typename T, typename D, typename A =std::allocator<T> >
 class delegate_allocator
+  : public D::template mixin<delegate_allocator<T, D, A> >
 /// \cond PRIVATE
 
-: A     // Private inheritance enables EBO when A is empty.
+, A     // Private inheritance enables EBO when A is empty.
 
 /// \endcond
 {
@@ -83,6 +85,8 @@ class delegate_allocator
         // count of 0.
 
   public:
+
+    D* operator->() { return m_delegate; }
 
     /// forwards the corresponding trait of the decorated allocator type
     ///@{
@@ -239,11 +243,14 @@ class delegate_allocator
 
     // Other Methods
 
+    D& delegate();
+        ///< Returns the shared delegate of this allocator's copy group.
+
+    D const& delegate() const;
+        ///< Returns the shared delegate of this allocator's copy group.
+
     A get_allocator() const;
         ///< Returns the decorated allocator.
-
-    D get_delegate() const;
-        ///< Returns the shared delegate of this allocator's copy group.
 };
 
 template <typename T, typename D, typename A>

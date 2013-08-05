@@ -10,14 +10,14 @@ test: test_level1 test_level2
 # Level 1
 
 test_level1: \
-    counting_allocator_delegate_test \
+    counting_allocator_test \
     null_allocator_delegate_test
-	./counting_allocator_delegate_test
+	./counting_allocator_test
 	./null_allocator_delegate_test
 
-counting_allocator_delegate_test: \
-    counting_allocator_delegate_test.o \
-    counting_allocator_delegate.o
+counting_allocator_test: \
+    counting_allocator_test.o \
+    counting_allocator.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 null_allocator_delegate_test: \
