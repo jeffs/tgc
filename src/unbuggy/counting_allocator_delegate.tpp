@@ -140,19 +140,35 @@ namespace unbuggy {
     template <typename A, typename C, typename... Args>
     void counting_allocator_delegate::construct(A& a, C* c, Args&&... args)
     {
+        ++m_construct_calls;
+
         std::allocator_traits<A>::construct(a, c, args...);
+
+        ++m_constructed_objects_all;
+
+        if (++m_constructed_objects > 0 &&
+                std::size_t( m_constructed_objects ) >
+                    m_constructed_objects_max)
+            m_constructed_objects_max = m_constructed_objects;
     }
 
     template <typename A, typename C>
     void counting_allocator_delegate::destroy(A& a, C* c)
     {
+        ++m_destroy_calls;
+
         std::allocator_traits<A>::destroy(a, c);
+
+        if (--m_constructed_objects < m_constructed_objects_min)
+            m_constructed_objects_min = m_constructed_objects;
     }
 
     template <typename A>
     typename std::allocator_traits<A>::size_type
     counting_allocator_delegate::max_size(A const& a)
     {
+        ++m_max_size_calls;
+
         return std::allocator_traits<A>::max_size(a);
     }
 
@@ -160,6 +176,8 @@ namespace unbuggy {
     A counting_allocator_delegate::select_on_container_copy_construction(
             A const& a)
     {
+        ++m_select_on_container_copy_construction_calls;
+
         return A( std::allocator_traits<A>::
                 select_on_container_copy_construction(a) );
     }
