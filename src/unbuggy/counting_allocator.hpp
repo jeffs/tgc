@@ -38,11 +38,11 @@ class counting_allocator_delegate {
     std::size_t    m_destroy_calls;
     std::size_t    m_max_size_calls;
     std::size_t    m_select_on_container_copy_construction_calls;
-    std::ptrdiff_t m_allocated_memory_now;
+    std::ptrdiff_t m_allocated_memory;
     std::ptrdiff_t m_allocated_memory_min;
-    std::ptrdiff_t m_allocated_objects_now;
+    std::ptrdiff_t m_allocated_objects;
     std::ptrdiff_t m_allocated_objects_min;
-    std::ptrdiff_t m_constructed_objects_now;
+    std::ptrdiff_t m_constructed_objects;
     std::ptrdiff_t m_constructed_objects_min;
 
   public:
@@ -121,23 +121,23 @@ class counting_allocator_delegate {
         ///  result is negative if, at any time, more objects had been
         ///  deallocated than allocated.
 
-    std::ptrdiff_t allocated_objects_now() const;
+    std::ptrdiff_t allocated_objects() const;
         ///< Returns the current number of live allocated objects.  The result
         ///  is negative if more objects have been deallocated than allocated.
 
-    std::size_t allocated_memory_all() const;
+    std::size_t memory_all() const;
         ///< Returns the total amount of allocated memory.  Counts memory
         ///  regardless of whether it has been deallocated.
 
-    std::size_t allocated_memory_max() const;
+    std::size_t memory_max() const;
         ///< Returns the highest amount of live allocated memory seen.
 
-    std::ptrdiff_t allocated_memory_min() const;
+    std::ptrdiff_t memory_min() const;
         ///< Returns the lowest amount of live allocated memory seen.  The
         ///  result is negative if, at any time, more memory had been
         ///  deallocated than allocated.
 
-    std::ptrdiff_t allocated_memory_now() const;
+    std::ptrdiff_t memory() const;
         ///< Returns the current amount of live allocated memory.  The result
         ///  is negative if more memory has been deallocated than allocated.
 
@@ -167,7 +167,7 @@ class counting_allocator_delegate {
         ///  result is negative if, at any time, more objects had been
         ///  destroyed than constructed.
 
-    std::ptrdiff_t constructed_objects_now() const;
+    std::ptrdiff_t constructed_objects() const;
         ///< Returns the current number of live constructed objects.  The
         ///  result is negative if more objects have been destroyed than
         ///  constructed.
@@ -196,11 +196,11 @@ struct counting_allocator_mixin {
     std::size_t     allocated_objects_all()   const;
     std::size_t     allocated_objects_max()   const;
     std::ptrdiff_t  allocated_objects_min()   const;
-    std::ptrdiff_t  allocated_objects_now()   const;
-    std::size_t     allocated_memory_all()    const;
-    std::size_t     allocated_memory_max()    const;
-    std::ptrdiff_t  allocated_memory_min()    const;
-    std::ptrdiff_t  allocated_memory_now()    const;
+    std::ptrdiff_t  allocated_objects()       const;
+    std::size_t     memory_all()              const;
+    std::size_t     memory_max()              const;
+    std::ptrdiff_t  memory_min()              const;
+    std::ptrdiff_t  memory()                  const;
     std::size_t     deallocate_calls()        const;
     std::size_t     deallocated_objects_all() const;
     std::size_t     deallocated_memory_all()  const;
@@ -208,7 +208,7 @@ struct counting_allocator_mixin {
     std::size_t     constructed_objects_all() const;
     std::size_t     constructed_objects_max() const;
     std::ptrdiff_t  constructed_objects_min() const;
-    std::ptrdiff_t  constructed_objects_now() const;
+    std::ptrdiff_t  constructed_objects()     const;
     std::size_t     destroy_calls()           const;
     std::size_t     max_size_calls()          const;
     std::size_t     select_on_container_copy_construction_calls() const;

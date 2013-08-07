@@ -3,9 +3,9 @@ CPPFLAGS = -I..
 CXXFLAGS = -std=c++11 -pedantic -Wall -stdlib=libc++
 LDFLAGS = -stdlib=libc++
 
-.PHONY: clean doc test test_level1 test_level2
+.PHONY: clean doc test test_level1 test_level2 test_usage
 
-test: test_level1 test_level2
+test: test_level1 test_level2 test_usage
 
 # Level 1
 
@@ -17,7 +17,8 @@ test_level1: \
 
 counting_allocator_test: \
     counting_allocator_test.o \
-    counting_allocator.o
+    counting_allocator.o \
+    delegate_allocator.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 null_allocator_delegate_test: \
@@ -30,12 +31,18 @@ null_allocator_delegate_test: \
 test_level2: delegate_allocator_test
 	./delegate_allocator_test
 
-delegate_allocator_test: delegate_allocator_test.o delegate_allocator.o
+delegate_allocator_test: \
+    delegate_allocator_test.o \
+    delegate_allocator.o \
+    null_allocator_delegate.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 # Usage
 
-usage: usage.o info_allocator.o
+test_usage: usage
+	./usage
+
+usage: usage.o counting_allocator.o delegate_allocator.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 # Rules

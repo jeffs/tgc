@@ -251,6 +251,10 @@ class delegate_allocator
 
     A get_allocator() const;
         ///< Returns the decorated allocator.
+
+    template <typename U>
+    typename rebind<U>::other rebind_for() const;
+        ///< Returns a rebound allocator that shares this allocator's delegate.
 };
 
 template <typename T, typename D, typename A>

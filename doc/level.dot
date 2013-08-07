@@ -10,25 +10,23 @@ digraph Levels {
         3 -> 2 -> 1;
     }
 
-    subgraph cluster_level2 {
+    subgraph cluster_level3 {
              auto_allocator;
+         counting_allocator;
            finite_allocator;
+    }
+
+    subgraph cluster_level2 {
          delegate_allocator;
     }
 
     subgraph cluster_level1 {
                   AllocatorDelegate;
-            auto_allocator_delegate;
             null_allocator_delegate;
-          finite_allocator_delegate;
-        counting_allocator_delegate;
     }
 
          auto_allocator ->          delegate_allocator;
-         auto_allocator ->     auto_allocator_delegate;
        finite_allocator ->          delegate_allocator;
-       finite_allocator ->   finite_allocator_delegate;
      counting_allocator ->          delegate_allocator;
-     counting_allocator -> counting_allocator_delegate;
      delegate_allocator ->     null_allocator_delegate;     // for testing
 }

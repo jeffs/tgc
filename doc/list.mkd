@@ -7,7 +7,7 @@ Concepts
 ### Level 1
 
 `AllocatorDelegate`
-  : backs a `delegating_allocator`
+  : backs a `delegate_allocator`
   : mirrors `Allocator` methods, accepting `Allocator` as first parameter
   : `Allocator` is defined by INCITS ISO IEC 14882 2012
 
@@ -24,48 +24,43 @@ _There are no level-1 allocators._
   : shares ownership of an `AllocatorDelegate`
   : forwards method calls to `AllocatorDelegate`, passing decorated `Allocator`
 
+# Level 3
+
 `auto_allocator`
   : allocates memory from a growable pool
+  : fixed portion of pool is stack-based
+  : grows pool using parameter `Allocator`
+  : mixin locks allocator using `lockable_traits`
 
-        template <typename A>
-        using auto_allocator = delegate_allocator<A, auto_allocator_delegate>;
-
-`counted_allocator`
+`countng_allocator`
   : counts calls to all `Allocator` methods
   : counts allocated and deallocated objects
-
-        template <typename A>
-        using counted_allocator =
-            delegate_allocator<A, counted_allocator_delegate>;
+  : mixin locks allocator using `lockable_traits`
 
 `finite_allocator`
   : allocates memory from a finite buffer
-
-        template <typename A>
-        using finite_allocator =
-            delegate_allocator<A, finite_allocator_delegate>;
+  : maintains an internal heap
+  : mixin locks allocator using `lockable_traits`
 
 Delegates
 ---------
 ### Level 1
 
-`auto_allocator_delegate`
-  : allocates memory from a growable pool
-  : grows pool using parameter `Allocator`
-
-`counted_allocator_delegate`
-  : counts calls to all `Allocator` methods
-  : counts allocated and deallocated objects
-
-`finite_allocator_delegate`
-  : allocates memory from a finite buffer
-  : maintains an internal heap
-  : uses leading parameter `Allocator` only to determine object size
-
 `null_allocator_delegate`
   : simply passes all calls to leading `Allocator` parameter
   : used to test `delegate_allocator`
   : may be used as partial implementation of other delegates
+
+TODO
+----
+`lockable_delegate_allocator`
+  : like `delegate_allocator`, but synchronized
+  : acquires/releases a lock before/after each operation
+  : models `Lockable`; provides lock/unlock to mixin
+
+`lockable_traits`
+  : forwards `lock`/`try_lock`/`unlock` to argument object
+  : provides empty implementations for non-lockable objects
 
 <style>
     dd p:first-child { margin-top: 0 }

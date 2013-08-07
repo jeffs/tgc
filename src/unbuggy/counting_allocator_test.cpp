@@ -335,46 +335,46 @@ void test_further_requirements()
     auto z  = sizeof(T);                    assert(a.deallocate_calls() == 0);
     auto oa = a.allocated_objects_all();    assert(oa                   == 3);
     auto om = a.allocated_objects_max();    assert(om                   == 3);
-    auto on = a.allocated_objects_now();    assert(on                   == 3);
-    auto ma = a.allocated_memory_all();     assert(ma              == oa * z);
-    auto mm = a.allocated_memory_max();     assert(mm              == om * z);
-    auto mn = a.allocated_memory_now();     assert(mn              == on * z);
+    auto on = a.allocated_objects();        assert(on                   == 3);
+    auto ma = a.memory_all();               assert(ma              == oa * z);
+    auto mm = a.memory_max();               assert(mm              == om * z);
+    auto mn = a.memory();                   assert(mn              == on * z);
 
     XX::pointer q = XX::allocate(a, 2);     assert(a.allocate_calls()   == 2);
                                             assert(a.deallocate_calls() == 0);
     oa = a.allocated_objects_all();         assert(oa                   == 5);
     om = a.allocated_objects_max();         assert(om                   == 5);
-    on = a.allocated_objects_now();         assert(on                   == 5);
-    ma = a.allocated_memory_all();          assert(ma              == oa * z);
-    mm = a.allocated_memory_max();          assert(mm              == om * z);
-    mn = a.allocated_memory_now();          assert(mn              == on * z);
+    on = a.allocated_objects();             assert(on                   == 5);
+    ma = a.memory_all();                    assert(ma              == oa * z);
+    mm = a.memory_max();                    assert(mm              == om * z);
+    mn = a.memory();                        assert(mn              == on * z);
 
     XX::deallocate(a, p, 3);                assert(a.allocate_calls()   == 2);
                                             assert(a.deallocate_calls() == 1);
     oa = a.allocated_objects_all();         assert(oa                   == 5);
     om = a.allocated_objects_max();         assert(om                   == 5);
-    on = a.allocated_objects_now();         assert(on                   == 2);
-    ma = a.allocated_memory_all();          assert(ma              == oa * z);
-    mm = a.allocated_memory_max();          assert(mm              == om * z);
-    mn = a.allocated_memory_now();          assert(mn              == on * z);
+    on = a.allocated_objects();             assert(on                   == 2);
+    ma = a.memory_all();                    assert(ma              == oa * z);
+    mm = a.memory_max();                    assert(mm              == om * z);
+    mn = a.memory();                        assert(mn              == on * z);
 
     p = XX::allocate(a, 1);                 assert(a.allocate_calls()   == 3);
                                             assert(a.deallocate_calls() == 1);
     oa = a.allocated_objects_all();         assert(oa                   == 6);
     om = a.allocated_objects_max();         assert(om                   == 5);
-    on = a.allocated_objects_now();         assert(on                   == 3);
-    ma = a.allocated_memory_all();          assert(ma              == oa * z);
-    mm = a.allocated_memory_max();          assert(mm              == om * z);
-    mn = a.allocated_memory_now();          assert(mn              == on * z);
+    on = a.allocated_objects();             assert(on                   == 3);
+    ma = a.memory_all();                    assert(ma              == oa * z);
+    mm = a.memory_max();                    assert(mm              == om * z);
+    mn = a.memory();                        assert(mn              == on * z);
 
     XX::deallocate(a, p, 1);                assert(a.allocate_calls()   == 3);
                                             assert(a.deallocate_calls() == 2);
     oa = a.allocated_objects_all();         assert(oa                   == 6);
     om = a.allocated_objects_max();         assert(om                   == 5);
-    on = a.allocated_objects_now();         assert(on                   == 2);
-    ma = a.allocated_memory_all();          assert(ma              == oa * z);
-    mm = a.allocated_memory_max();          assert(mm              == om * z);
-    mn = a.allocated_memory_now();          assert(mn              == on * z);
+    on = a.allocated_objects();             assert(on                   == 2);
+    ma = a.memory_all();                    assert(ma              == oa * z);
+    mm = a.memory_max();                    assert(mm              == om * z);
+    mn = a.memory();                        assert(mn              == on * z);
 
     // Allocators in the same copy group must share counts, even when rebound.
 
@@ -386,34 +386,34 @@ void test_further_requirements()
                                             assert(a.deallocate_calls() ==  2);
                                        assert(a.allocated_objects_all() == 10);
                                        assert(a.allocated_objects_max() ==  6);
-    std::size_t z1 = sizeof(C);        assert(a.allocated_objects_now() ==  6);
-    ma = 6 * z + 4 * z1;               assert(a.allocated_memory_all()  == ma);
-    mm = 2 * z + 4 * z1;               assert(a.allocated_memory_max()  == mm);
-    mn = 2 * z + 4 * z1;               assert(a.allocated_memory_now()  == mn);
+    std::size_t z1 = sizeof(C);        assert(a.allocated_objects()     ==  6);
+    ma = 6 * z + 4 * z1;               assert(a.memory_all()  == ma);
+    mm = 2 * z + 4 * z1;               assert(a.memory_max()  == mm);
+    mn = 2 * z + 4 * z1;               assert(a.memory()      == mn);
 
     XX::deallocate(a, q, 2);           assert(a.allocate_calls()        ==  4);
                                        assert(a.deallocate_calls()      ==  3);
                                        assert(a.allocated_objects_all() == 10);
                                        assert(a.allocated_objects_max() ==  6);
-                                       assert(a.allocated_objects_now() ==  4);
-    ma = 6 * z + 4 * z1;               assert(a.allocated_memory_all()  == ma);
-    mm = 2 * z + 4 * z1;               assert(a.allocated_memory_max()  == mm);
-    mn =         4 * z1;               assert(a.allocated_memory_now()  == mn);
+                                       assert(a.allocated_objects()     ==  4);
+    ma = 6 * z + 4 * z1;               assert(a.memory_all()  == ma);
+    mm = 2 * z + 4 * z1;               assert(a.memory_max()  == mm);
+    mn =         4 * z1;               assert(a.memory()      == mn);
 
     ZZ::deallocate(c, r, 4);           assert(a.allocate_calls()        ==  4);
                                        assert(a.deallocate_calls()      ==  4);
                                        assert(a.allocated_objects_all() == 10);
                                        assert(a.allocated_objects_max() ==  6);
-                                       assert(a.allocated_objects_now() ==  0);
-    ma = 6 * z + 4 * z1;               assert(a.allocated_memory_all()  == ma);
-    mm = 2 * z + 4 * z1;               assert(a.allocated_memory_max()  == mm);
-    mn =              0;               assert(a.allocated_memory_now()  == mn);
+                                       assert(a.allocated_objects()     ==  0);
+    ma = 6 * z + 4 * z1;               assert(a.memory_all()  == ma);
+    mm = 2 * z + 4 * z1;               assert(a.memory_max()  == mm);
+    mn =              0;               assert(a.memory()      == mn);
 }
 
 int main()
 {
     test_standard_requirements();
-    //test_further_requirements();
+    test_further_requirements();
 }
 
 /// \endcond

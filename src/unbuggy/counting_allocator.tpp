@@ -24,11 +24,11 @@ namespace unbuggy {
       , m_destroy_calls( )
       , m_max_size_calls( )
       , m_select_on_container_copy_construction_calls( )
-      , m_allocated_memory_now( )
+      , m_allocated_memory( )
       , m_allocated_memory_min( )
-      , m_allocated_objects_now( )
+      , m_allocated_objects( )
       , m_allocated_objects_min( )
-      , m_constructed_objects_now( )
+      , m_constructed_objects( )
       , m_constructed_objects_min( )
     { }
 
@@ -48,12 +48,11 @@ namespace unbuggy {
         // All, current, and max objects
 
         m_allocated_objects_all += n;
-        m_allocated_objects_now += n;
+        m_allocated_objects += n;
 
-        if (m_allocated_objects_now > 0 &&
-                std::size_t( m_allocated_objects_now ) >
-                m_allocated_objects_max)
-            m_allocated_objects_max = m_allocated_objects_now;
+        if (m_allocated_objects > 0 &&
+                std::size_t( m_allocated_objects ) > m_allocated_objects_max)
+            m_allocated_objects_max = m_allocated_objects;
 
         // All, current, and max memory
 
@@ -61,11 +60,11 @@ namespace unbuggy {
             n * sizeof(typename std::allocator_traits<A>::value_type);
 
         m_allocated_memory_all += m;
-        m_allocated_memory_now += m;
+        m_allocated_memory += m;
 
-        if (m_allocated_memory_now > 0 &&
-                std::size_t( m_allocated_memory_now ) > m_allocated_memory_max)
-            m_allocated_memory_max = m_allocated_memory_now;
+        if (m_allocated_memory > 0 &&
+                std::size_t( m_allocated_memory ) > m_allocated_memory_max)
+            m_allocated_memory_max = m_allocated_memory;
 
         return r;
     }
@@ -87,12 +86,11 @@ namespace unbuggy {
         // All, current, and max objects
 
         m_allocated_objects_all += n;
-        m_allocated_objects_now += n;
+        m_allocated_objects += n;
 
-        if (m_allocated_objects_now > 0 &&
-                std::size_t( m_allocated_objects_now ) >
-                m_allocated_objects_max)
-            m_allocated_objects_max = m_allocated_objects_now;
+        if (m_allocated_objects > 0 &&
+                std::size_t( m_allocated_objects ) > m_allocated_objects_max)
+            m_allocated_objects_max = m_allocated_objects;
 
         // All, current, and max memory
 
@@ -100,11 +98,11 @@ namespace unbuggy {
             n * sizeof(typename std::allocator_traits<A>::value_type);
 
         m_allocated_memory_all += m;
-        m_allocated_memory_now += m;
+        m_allocated_memory += m;
 
-        if (m_allocated_memory_now > 0 &&
-                std::size_t( m_allocated_memory_now ) > m_allocated_memory_max)
-            m_allocated_memory_max = m_allocated_memory_now;
+        if (m_allocated_memory > 0 &&
+                std::size_t( m_allocated_memory ) > m_allocated_memory_max)
+            m_allocated_memory_max = m_allocated_memory;
 
         return r;
     }
@@ -124,10 +122,10 @@ namespace unbuggy {
         // All, current, and min objects
 
         m_deallocated_objects_all += n;
-        m_allocated_objects_now   -= n;
+        m_allocated_objects   -= n;
 
-        if (m_allocated_objects_now < m_allocated_objects_min)
-            m_allocated_objects_min = m_allocated_objects_now;
+        if (m_allocated_objects < m_allocated_objects_min)
+            m_allocated_objects_min = m_allocated_objects;
 
         // All, current, and min memory
 
@@ -135,10 +133,10 @@ namespace unbuggy {
             n * sizeof(typename std::allocator_traits<A>::value_type);
 
         m_deallocated_memory_all += m;
-        m_allocated_memory_now   -= m;
+        m_allocated_memory -= m;
 
-        if (m_allocated_memory_now < m_allocated_memory_min)
-            m_allocated_memory_min = m_allocated_memory_now;
+        if (m_allocated_memory < m_allocated_memory_min)
+            m_allocated_memory_min = m_allocated_memory;
     }
 
     template <typename A, typename C, typename... Args>
@@ -150,10 +148,10 @@ namespace unbuggy {
 
         ++m_constructed_objects_all;
 
-        if (++m_constructed_objects_now > 0 &&
-                std::size_t( m_constructed_objects_now ) >
+        if (++m_constructed_objects > 0 &&
+                std::size_t( m_constructed_objects ) >
                 m_constructed_objects_max)
-            m_constructed_objects_max = m_constructed_objects_now;
+            m_constructed_objects_max = m_constructed_objects;
     }
 
     template <typename A, typename C>
@@ -163,8 +161,8 @@ namespace unbuggy {
 
         std::allocator_traits<A>::destroy(a, c);
 
-        if (--m_constructed_objects_now < m_constructed_objects_min)
-            m_constructed_objects_min = m_constructed_objects_now;
+        if (--m_constructed_objects < m_constructed_objects_min)
+            m_constructed_objects_min = m_constructed_objects;
     }
 
     template <typename A>
@@ -211,33 +209,33 @@ namespace unbuggy {
     }
 
     inline
-    std::ptrdiff_t counting_allocator_delegate::allocated_objects_now() const
+    std::ptrdiff_t counting_allocator_delegate::allocated_objects() const
     {
-        return m_allocated_objects_now;
+        return m_allocated_objects;
     }
 
     inline
-    std::size_t counting_allocator_delegate::allocated_memory_all() const
+    std::size_t counting_allocator_delegate::memory_all() const
     {
         return m_allocated_memory_all;
     }
 
     inline
-    std::size_t counting_allocator_delegate::allocated_memory_max() const
+    std::size_t counting_allocator_delegate::memory_max() const
     {
         return m_allocated_memory_max;
     }
 
     inline
-    std::ptrdiff_t counting_allocator_delegate::allocated_memory_min() const
+    std::ptrdiff_t counting_allocator_delegate::memory_min() const
     {
         return m_allocated_memory_min;
     }
 
     inline
-    std::ptrdiff_t counting_allocator_delegate::allocated_memory_now() const
+    std::ptrdiff_t counting_allocator_delegate::memory() const
     {
-        return m_allocated_memory_now;
+        return m_allocated_memory;
     }
 
     inline
@@ -283,9 +281,9 @@ namespace unbuggy {
     }
 
     inline
-    std::ptrdiff_t counting_allocator_delegate::constructed_objects_now() const
+    std::ptrdiff_t counting_allocator_delegate::constructed_objects() const
     {
-        return m_constructed_objects_now;
+        return m_constructed_objects;
     }
 
     inline
@@ -335,33 +333,33 @@ namespace unbuggy {
     }
 
     template <typename A>
-    std::ptrdiff_t counting_allocator_mixin<A>::allocated_objects_now() const
+    std::ptrdiff_t counting_allocator_mixin<A>::allocated_objects() const
     {
-        return static_cast<A const*>(this)->delegate().allocated_objects_now();
+        return static_cast<A const*>(this)->delegate().allocated_objects();
     }
 
     template <typename A>
-    std::size_t counting_allocator_mixin<A>::allocated_memory_all() const
+    std::size_t counting_allocator_mixin<A>::memory_all() const
     {
-        return static_cast<A const*>(this)->delegate().allocated_memory_all();
+        return static_cast<A const*>(this)->delegate().memory_all();
     }
 
     template <typename A>
-    std::size_t counting_allocator_mixin<A>::allocated_memory_max() const
+    std::size_t counting_allocator_mixin<A>::memory_max() const
     {
-        return static_cast<A const*>(this)->delegate().allocated_memory_max();
+        return static_cast<A const*>(this)->delegate().memory_max();
     }
 
     template <typename A>
-    std::ptrdiff_t counting_allocator_mixin<A>::allocated_memory_min() const
+    std::ptrdiff_t counting_allocator_mixin<A>::memory_min() const
     {
-        return static_cast<A const*>(this)->delegate().allocated_memory_min();
+        return static_cast<A const*>(this)->delegate().memory_min();
     }
 
     template <typename A>
-    std::ptrdiff_t counting_allocator_mixin<A>::allocated_memory_now() const
+    std::ptrdiff_t counting_allocator_mixin<A>::memory() const
     {
-        return static_cast<A const*>(this)->delegate().allocated_memory_now();
+        return static_cast<A const*>(this)->delegate().memory();
     }
 
     template <typename A>
@@ -412,10 +410,9 @@ namespace unbuggy {
     }
 
     template <typename A>
-    std::ptrdiff_t counting_allocator_mixin<A>::constructed_objects_now() const
+    std::ptrdiff_t counting_allocator_mixin<A>::constructed_objects() const
     {
-        return static_cast<A const*>(this)->
-            delegate().constructed_objects_now();
+        return static_cast<A const*>(this)->delegate().constructed_objects();
     }
 
     template <typename A>

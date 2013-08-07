@@ -304,6 +304,14 @@ A delegate_allocator<T, D, A>::get_allocator() const
     return static_cast<A const&>(*this);
 }
 
+template <typename T, typename D, typename A>
+template <typename U>
+typename delegate_allocator<T, D, A>::template rebind<U>::other
+delegate_allocator<T, D, A>::rebind_for() const
+{
+    return rebind<U>::other( m_delegate, *this );
+}
+
 }  /// \namespace unbuggy
 
 template <typename T, typename D, typename A>
