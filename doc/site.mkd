@@ -1,0 +1,68 @@
+Functional Memory Library
+=========================
+The Functional Allocator Library is the most flexible and generally useful set
+of memory allocators available for C++.  FAL supports profiling, debugging, and
+extreme performance optimization.  FAL builds on the standard Scoped Allocator
+model to offer greater power and flexibility than other allocator libraries,
+allowing custom allocation strategies to be selected on a per-object basis.
+
+FAL works with standard compilers and STL implementations, and all C++11
+allocator-aware classes.  Allocation strategies may be selected at compile-time
+or at run-time, or a combination of both.
+
+How FML Works
+-------------
+FML fills a critical gap in the C++ standard library by providing a complete
+set of useful memory allocators.  The C++ standard library has always supported
+a notion of memory allocators, but until recently, allocators were poorly
+supported.  In particular, a restriction in the standard prevented allocators
+from maintaining any per-instance state, thus severely limiting their utility.
+
+Today, the situation has greatly improved, and all standard containers support
+stateful allocators.  The chief obstacle to the effective use of allocators is
+now simply the lack of concrete allocator implementations in the standard
+library.  FML directly addresses this issue, and enables developers to fully
+realize the power of the modern STL.
+
+Additionally, FML supports an optional extension to the standard allocator
+model: Run-time dispatch of allocation requests.  Run-time dispatch allows
+containers of a single static type to use different allocators at run time,
+thus decreasing template-related bloat and potentially improving both
+performance (thanks to fewer i-cache misses) and object code size.
+
+API Documentation
+-----------------
+### Allocators for debugging
+### Allocators for profiling
+### Allocators for maximizing performance
+### Allocators for minimizing footprint
+
+FAQ
+---
+Q. How does FML differ from Hoard, or other fast allocators?
+:   A. Process-level allocators like Hoard replace `malloc` and `free` with
+    faster versions, and are meant to be drop-in performance improvements.  FAL
+    is 100% compatible with such fast allocators, but additionally offers
+    finely grained control over allocation, down to the level of individual
+    classes and objects.  FAL also offers allocators useful for profiling and
+    debugging, as well as extreme performance.  Unlike most `malloc`
+    replacements, FAL is specific to C++.
+
+Q. How is FML licensed?
+:   A. FML is commercially licensed at the rate of $1,000 per developer, or
+    $15,000 for an unlimited license, not including any redistribution rights.
+    The licensee receives the full source code of FML, plus updates for one
+    full year.  Rights to redistribute FML as part of the licensee's executable
+    are available for $100 per distributed copy, or $15,000 for unlimited
+    quantity.  Rights do not include redistribution of FML headers or source
+    code.  For details, contact [Unbuggy Software LLC][mail].
+    
+
+[AGPL]: http://www.gnu.org/licenses/agpl-3.0.html
+[mail]: mailto:jeff@unbuggy.com
+
+  
+
+
+<footer>Copyright 2013 Unbuggy Software LLC.  All Rights Reserved.</footer>
+
