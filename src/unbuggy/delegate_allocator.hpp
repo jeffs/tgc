@@ -68,9 +68,8 @@ class delegate_allocator
 
     // Private Constructors
 
-    delegate_allocator( shared_delegate* d, A const& a );
-        // Share \a d, and decorate the result of
-        // select_on_container_copy_construction on \a a.
+    delegate_allocator( shared_delegate* d, A&& a );
+        // Share \a d, and decorate a (move or) copy of \a a.
 
     // Private Methods
 
@@ -298,7 +297,6 @@ bool operator!=(
     ///< Equivalent to <code>!(a == b)</code>.
 
 }  /// \namespace unbuggy
-
 
 #include "unbuggy/delegate_allocator.tpp"
 #endif

@@ -8,7 +8,8 @@ allowing custom allocation strategies to be selected on a per-object basis.
 
 FAL works with standard compilers and STL implementations, and all C++11
 allocator-aware classes.  Allocation strategies may be selected at compile-time
-or at run-time, or a combination of both.
+or at run-time, or a combination of both.  FML augments, but does not replace,
+your existing standard library implementation
 
 How FML Works
 -------------
@@ -30,34 +31,173 @@ containers of a single static type to use different allocators at run time,
 thus decreasing template-related bloat and potentially improving both
 performance (thanks to fewer i-cache misses) and object code size.
 
+What You Can Do With FML
+------------------------
+* run faster and use less memory
+  - use stack as through it were heap
+  - avoid heap fragmentation
+  - tune allocation on a per-object basis
+  - leverage quickfit and mark/release strategies
+* develop faster
+  - find bugs
+  - find bottlenecks
+* select optimal memory allocation strategies on a per-object basis
+
+Example 1: Counting Memory
+--------------------------
+Consider the following line-sorting program:
+
+    #include <iostream>
+    #include <string>
+    #include <vector>
+
+    int main()
+    {
+        std::string line;
+        std::vector<std::string> lines;
+
+        while (std::getline(std::cin, line))
+            lines.push_back(std::move(line));
+
+        std::sort(lines.begin(), lines.end());
+
+        for (auto const& line : lines)
+            std::cout << line << '\n';
+    }
+
+Suppose that we wish to know how much memory is allocated by the vector and its
+elements during a particular run.  Without FML, this straight-forward question
+is difficult to answer, but with FML, the information is readily available:
+
+    #include <iostream>
+    #include <string>
+    #include <vector>
+
+    #include "unbuggy/fml.hpp"              // for fml::string and fml::vector
+
+    int main()
+    {
+        fml::string line;                   // std => fml
+        fml::vector<fml::string> lines;     // std => fml
+
+        while (std::getline(std::cin, line))
+            lines.push_back(std::move(line));
+
+        std::cout << lines.get_allocator().memory() << '\n';
+                                            // prints the total amount of
+                                            // memory used by the vector and
+                                            // contained strings
+        // ... as before ...
+    }
+
+
+Names like `fml::vector` are not new container implementations, only convenient
+aliases for standard containers parameterized by specialized allocator types.
+For example, the above declarations are roughly equivalent to the following:
+
+    typedef std::basic_string<
+                char
+              , std::char_traits<char>
+              , fml::counting_allocator<char> >
+            string_t;
+      
+    string_t line;
+    vector<string_t, fml::scoped_counting_allocator<string_t> > lines;
+
+Allocators may be dedicated to individual objects, shared by several objects,
+or even shared by all objects of a particular type.
+
+Example 2: Extreme Efficiency
+-----------------------------
+The fastest allocation requires no system calls at all, allocating from stack
+rather than heap memory.  All FML allocators accept an optional buffer as a
+first parameter, and use this buffer before requesting any system heap memory.
+Moreover, 
+
+
+
 API Documentation
 -----------------
-### Allocators for debugging
-### Allocators for profiling
-### Allocators for maximizing performance
-### Allocators for minimizing footprint
+### Allocators For Debugging And Profiling
+* Check Allocator
+  - Invokes callback on mismatch
+  - Offers sample callbacks: assert, hang, or log
+
+* Count Allocator
+  - Counts all calls, memory, and objects
+
+* Log Allocator
+  - Logs all calls to a supplied ostream
+  - An Observer is notified of each call
+  - Implemented as Observable with `logging_observer`
+
+* Bad Allocator
+  - Fails all allocation requests
+
+* Observable Allocator
+  - Invokes an Observer at each call
+  - `null_observer` provides empty implementations
+  - `logging_observer` decorator logs to supplied stream
+
+* Trace Allocator
+  - Not supported on all platforms
+  - Annotates each allocation with a stack trace
+  - Reports stack traces on mismatch
+
+### Allocators For Optimizing
+* Auto Buffer
+  - Allocates from a supplied buffer
+  - Acquires new buffers as needed
+
+* Fixed Allocator
+  - Allocates memory from a supplied buffer
+
+* Footprint Allocator
+  - Allocates memory from a supplied buffer
+
+
+* Mark/Release
+  - maintains a buffer-pointer
+  - returns the front of the buffer, and increments the pointer
+  - ignores `deallocate` calls
+  - on _release_, releases all memory since last _mark_
+  - automatically releases on destruction
+
+* Quickfit
+  - maintains per-size free lists
+  - coalesces lazily
+
+### Conveniences
+* `fml/std.hpp` includes all standard headers
+* `fml/fml.hpp` includes all FML headers
+* `fml/all.hpp` includes all standard and FML headers
 
 FAQ
 ---
 Q. How does FML differ from Hoard, or other fast allocators?
-:   A. Process-level allocators like Hoard replace `malloc` and `free` with
-    faster versions, and are meant to be drop-in performance improvements.  FAL
-    is 100% compatible with such fast allocators, but additionally offers
-    finely grained control over allocation, down to the level of individual
-    classes and objects.  FAL also offers allocators useful for profiling and
-    debugging, as well as extreme performance.  Unlike most `malloc`
-    replacements, FAL is specific to C++.
+:   A. Process-level allocators like Hoard globally replace `malloc` and `free`,
+    and are meant to be drop-in performance improvements.  FAL is 100%
+    compatible with such fast allocators, but additionally offers finely
+    grained control over allocation, down to the level of individual classes
+    and objects.  FAL also offers allocators useful for profiling and
+    debugging, as well as extreme performance.  Unlike `malloc` replacements,
+    FAL is specific to C++.
 
 Q. How is FML licensed?
 :   A. FML is commercially licensed at the rate of $1,000 per developer, or
     $15,000 for an unlimited license, not including any redistribution rights.
     The licensee receives the full source code of FML, plus updates for one
-    full year.  Rights to redistribute FML as part of the licensee's executable
-    are available for $100 per distributed copy, or $15,000 for unlimited
-    quantity.  Rights do not include redistribution of FML headers or source
-    code.  For details, contact [Unbuggy Software LLC][mail].
-    
+    year.  Rights to redistribute FML as part of the licensee's executable
+    products are available for $100 per distributed copy, or $15,000 for
+    unlimited quantity.  Rights do not include redistribution of FML headers or
+    source code.  For details, contact [Unbuggy Software LLC][mail].
 
+Q. Is FML thread-safe?
+:  A. Yes.  FML provides thread-safe, locked versions of all allocators.  The
+   default, lock-free versions work correctly in multi-threaded programs, and
+   support concurrent access subject to a few restrictions; see the
+   [User Guide][TODO] for details.
+   
 [AGPL]: http://www.gnu.org/licenses/agpl-3.0.html
 [mail]: mailto:jeff@unbuggy.com
 

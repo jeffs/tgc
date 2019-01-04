@@ -29,6 +29,7 @@ class counting_allocator_delegate {
     std::size_t    m_allocated_memory_max;
     std::size_t    m_allocated_objects_all;
     std::size_t    m_allocated_objects_max;
+    std::size_t    m_allocations;
     std::size_t    m_construct_calls;
     std::size_t    m_constructed_objects_all;
     std::size_t    m_constructed_objects_max;
@@ -108,6 +109,11 @@ class counting_allocator_delegate {
     std::size_t allocate_calls() const;
         ///< Returns the number of times \c allocate has been called.  Includes
         ///  calls both with and without hints.
+
+    std::size_t allocations() const;
+        ///< Returns the number of times \c allocate called successfully.  The
+        ///  result matches \c allocate_calls unless a calls to \c allocate was
+        ///  unsuccessful (i.e., threw an exception).
 
     std::size_t allocated_objects_all() const;
         ///< Returns the total number of allocated objects.  Counts objects
@@ -193,6 +199,7 @@ struct counting_allocator_mixin {
     /// Invokes the corresponding method of the client allocator's delegate.
     ///@{
     std::size_t     allocate_calls()          const;
+    std::size_t     allocations()             const;
     std::size_t     allocated_objects_all()   const;
     std::size_t     allocated_objects_max()   const;
     std::ptrdiff_t  allocated_objects_min()   const;

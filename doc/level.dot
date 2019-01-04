@@ -1,32 +1,159 @@
 digraph Levels {
     compound=true;
     fontsize=12;
-    node [shape=none];
+    node [shape=box];
     style=invis;
 
     subgraph cluster_legend {
         edge [style=invis];
+        node [shape=none];
 
-        3 -> 2 -> 1;
+        7 -> 6 -> 5 -> 4 -> 3 -> 2 -> 1;
+    }
+
+    subgraph cluster_level7 {
+        rank=same;
+        all;
+    }
+
+    subgraph cluster_level6 {
+        rank=same;
+        stl;
+    }
+
+    subgraph cluster_level5 {
+        rank=same;
+        string; deque; forward_list; list; vector; queue; stack; map; set;
+    }
+
+    subgraph cluster_level4 {
+        rank=same;
+        default_allocator;
     }
 
     subgraph cluster_level3 {
-             auto_allocator;
-         counting_allocator;
-           finite_allocator;
+        rank=same;
+        delegate_allocator;
+        virtual_allocator;
     }
 
     subgraph cluster_level2 {
-         delegate_allocator;
+        rank=same;
+        capped_delegate;
+        counted_delegate;
+        locked_allocator;
+        mark_release_delegate;
+        quick_fit_delegate;
+        shared_delegate;
+        simple_delegate;
+        subject_delegate;
+        tagged_delegate;
+        tracked_delegate;
     }
 
     subgraph cluster_level1 {
-                  AllocatorDelegate;
-            null_allocator_delegate;
+        rank=same;
+        allocator_test_support;
+        delegate_test_support;
+        is_stateless;
     }
 
-         auto_allocator ->          delegate_allocator;
-       finite_allocator ->          delegate_allocator;
-     counting_allocator ->          delegate_allocator;
-     delegate_allocator ->     null_allocator_delegate;     // for testing
+    {rank=same; 7; all; }
+    {rank=same; 6; stl; }
+    {rank=same; 5; string; }
+    {rank=same; 4; default_allocator; }
+    {rank=same; 3; delegate_allocator; }
+    {rank=same; 2; capped_delegate; }
+    {rank=same; 1; allocator_test_support; }
+
+    /*************************************************************************
+     *                           Dependencies                                *
+     *************************************************************************/
+
+    /**************************** Components *********************************/
+
+    /* Level 7 */
+    all -> stl;
+    all -> capped_delegate;
+    all -> counted_delegate;
+    all -> default_allocator;
+    all -> delegate_allocator;
+    all -> locked_allocator;
+    all -> mark_release_delegate;
+    all -> quick_fit_delegate;
+    all -> shared_delegate;
+    all -> simple_delegate;
+    all -> subject_delegate;
+    all -> tagged_delegate;
+    all -> tracked_delegate;
+    all -> virtual_allocator;
+
+    /* Level 6 */
+    stl -> string;
+    stl -> deque;
+    stl -> forward_list;
+    stl -> list;
+    stl -> vector;
+    stl -> queue;
+    stl -> stack;
+    stl -> map;
+    stl -> set;
+
+    /* Level 5 */
+    string           -> default_allocator;
+    deque            -> default_allocator;
+    forward_list     -> default_allocator;
+    list             -> default_allocator;
+    vector           -> default_allocator;
+    queue            -> default_allocator;
+    stack            -> default_allocator;
+    map              -> default_allocator;
+    set              -> default_allocator;
+
+    /* Level 4 */
+    default_allocator       -> allocator_test_support;
+    default_allocator       -> counted_delegate;
+    default_allocator       -> quick_fit_delegate;
+    default_allocator       -> delegate_allocator;
+
+    /* Level 3 */
+    delegate_allocator      -> allocator_test_support;
+    delegate_allocator      -> is_stateless;
+    delegate_allocator      -> simple_delegate;         /* for test */
+    virtual_allocator       -> simple_delegate;         /* for test */
+    virtual_allocator       -> counted_delegate;        /* for test */
+
+    /* Level 2 */
+    simple_delegate         -> delegate_test_support;
+    quick_fit_delegate      -> delegate_test_support;
+    mark_release_delegate   -> delegate_test_support;
+    counted_delegate        -> delegate_test_support;
+    capped_delegate         -> delegate_test_support;
+    shared_delegate         -> delegate_test_support;
+    tagged_delegate         -> delegate_test_support;
+    locked_allocator        -> allocator_test_support;
+    subject_delegate        -> delegate_test_support;
+    subject_delegate        -> is_stateless;
+    tracked_delegate        -> delegate_test_support;
+    tracked_delegate        -> is_stateless;
+
+    /* Level 1 */
+    allocator_test_support;
+    delegate_test_support;
+    is_stateless;
+
+//  /* Level 0 */
+//  scoped_allocator;   /* provided by standard */
+//
+//  /***************************** Concepts **********************************/
+//
+//  /* Level 2 */
+//  DelegateDecorator       -> Delegate;
+//
+//  /* Level 1 */
+//  AllocatorAdaptor        -> Allocator;
+//  Delegate                -> Allocator;
+//
+//  /* Level 0 */
+//  Allocator;          /* provided by standard */
 }

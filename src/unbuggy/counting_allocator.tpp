@@ -15,6 +15,7 @@ namespace unbuggy {
       , m_allocated_memory_max( )
       , m_allocated_objects_all( )
       , m_allocated_objects_max( )
+      , m_allocations( )
       , m_construct_calls( )
       , m_constructed_objects_all( )
       , m_constructed_objects_max( )
@@ -44,6 +45,8 @@ namespace unbuggy {
 
         typename std::allocator_traits<A>::pointer r =
             std::allocator_traits<A>::allocate(a, n);   // may throw
+
+        ++m_allocations;
 
         // All, current, and max objects
 
@@ -82,6 +85,8 @@ namespace unbuggy {
 
         typename std::allocator_traits<A>::pointer r =
             std::allocator_traits<A>::allocate(a, n, hint);     // may throw
+
+        ++m_allocations;
 
         // All, current, and max objects
 
@@ -188,6 +193,12 @@ namespace unbuggy {
     std::size_t counting_allocator_delegate::allocate_calls() const
     {
         return m_allocate_calls;
+    }
+
+    inline
+    std::size_t counting_allocator_delegate::allocations() const
+    {
+        return m_allocations;
     }
 
     inline
@@ -312,6 +323,12 @@ namespace unbuggy {
     std::size_t counting_allocator_mixin<A>::allocate_calls() const
     {
         return static_cast<A const*>(this)->delegate().allocate_calls();
+    }
+
+    template <typename A>
+    std::size_t counting_allocator_mixin<A>::allocations() const
+    {
+        return static_cast<A const*>(this)->delegate().allocations();
     }
 
     template <typename A>

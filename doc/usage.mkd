@@ -1,0 +1,40 @@
+Questions
+---------
+* How much memory are my objects using?
+* Which objects use the most memory?
+* Which objects allocate most frequently?
+
+* How much time is spent in allocations?
+
+* How can I reduce the frequency of allocations?
+* How can my program use less memory?
+
+
+Profiling
+---------
+### Space
+* What parts of my program use the most memory?
+* How much memory is used by particular objects?
+* How much memory is used by all objects of a particular class?
+
+* How is memory used by my program?
+  - How much memory is used by each class?
+  - How much memory distributed among objects?
+  - Which classes and objects use the most memory?
+  - What is the average amount of memory required by objects of a certain
+    class?
+
+### Time
+* How much time is spent allocating?
+* How often is new memory allocated?
+
+Debugging
+---------
+* How can I debug memory leaks?
+* How can I debug double frees?
+
+Optimization
+------------
+* How can my program run faster?
+* How can my program use less memory?
+

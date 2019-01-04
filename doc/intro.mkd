@@ -1,0 +1,68 @@
+The Functional Memory Library
+=============================
+The _Functional Memory Library_ helps C++ developers track and control memory
+usage using C++11 standard-compliant memory allocators.  FML can report the
+amount of memory consumed, the number of allocations, and various other
+statistics on a per-class or per-object basis.  Once hotspots have been
+identified, specific FML allocators can be chosen to improve program
+efficiency and performance; e.g., by allocating from local buffers, rather than
+the free store.  FML is specific to C++11, and is well supported by popular
+compilers.
+
+Tracking Memory Usage
+---------------------
+As an example, let us consider a vector of strings that grows over time:
+
+    std::vector<std::string> v;
+
+    for (int i = 0; i < 10000; ++i)
+        v.emplace_back(i, 'x');
+
+Suppose that we want to know how many times the vector has to allocate memory.
+Instead of the default allocator type, we use an FML _counting allocator_,
+easily accessible through the `fml::vector` alias template:
+
+    fml::vector<std::string> v1;        // std::vector => fml::vector
+
+    for (int i = 0; i < 10000; ++i)     // \ as
+        v1.emplace_back(i, 'x');        // / above
+
+    std::cout << v1.get_allocator().allocations() << '\n';
+                                        // about log2(v.size())
+
+Now, suppose that we want to know exactly how much free store is consumed by
+the vector and all of its (string) elements.  Again, we just replace
+`std::string` with the `fml::string` alias:
+
+    fml::vector<fml::string> v2;        // std::string => fml::string
+
+    for (int i = 0; i < 10000; ++i)     // \ as
+        v2.emplace_back(i, 'x');        // / above
+
+    std::cout << v2.get_allocator().memory() << '\n';    // about 50 MB
+
+By default, FML allocators are not propagated on copy:
+assigned their own allocators:
+
+    fml::vector<fml::string> v3 = v2;   // v3 gets a brand new allocator
+
+For the tightest possible control, allocators may be supplied explicitly:
+
+    fml::vector<fml::string> v4( v3, v3.get_allocator() );
+                                        // v3 and v4 share an allocator
+
+It is even possible for each object in a container to have its own statistics:
+
+    std::vector<fml::string> v5;    // use FML allocator for elements only
+
+    v5.emplace_back( 867, 'x');
+    v5.emplace_back(5309, 'x');
+
+    assert(
+        v5[0].get_allocator().memory() !=   // slightly more than 867
+        v5[1].get_allocator().memory());    // slightly more than 5309
+
+    assert(v5[0].get_allocator().allocations() == 1);
+    assert(v5[1].get_allocator().allocations() == 1);
+
+FML allocators are not limited to vectors and strings.

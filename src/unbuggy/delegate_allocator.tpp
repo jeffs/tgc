@@ -20,10 +20,8 @@ namespace delegate_allocator_details {
 // Private Constructors
 
 template <typename T, typename D, typename A>
-delegate_allocator<T, D, A>::delegate_allocator(
-        shared_delegate* d
-      , A const&         a )
-  : A( d->select_on_container_copy_construction(a) )
+delegate_allocator<T, D, A>::delegate_allocator( shared_delegate* d, A&& a )
+  : A( a )
   , m_delegate( d )
 {
     ++m_delegate->ref_count;
@@ -209,6 +207,8 @@ delegate_allocator<T, D, A>::operator=(delegate_allocator const& rhs)
         destroy_delegate(m_delegate);
 
     m_delegate = rhs.m_delegate;
+
+    return *this;
 }
 
 // Move Assignment Operator
@@ -229,6 +229,8 @@ delegate_allocator<T, D, A>::operator=(delegate_allocator&& rhs)
         destroy_delegate(m_delegate);
 
     m_delegate = rhs.m_delegate;
+
+    return *this;
 }
 
 // Methods Modeling Allocator
@@ -281,7 +283,11 @@ template <typename T, typename D, typename A>
 delegate_allocator<T, D, A>
 delegate_allocator<T, D, A>::select_on_container_copy_construction() const
 {
-    return delegate_allocator( m_delegate, static_cast<A const&>(*this) );
+    // The new allocator has its own delegate.
+
+    return delegate_allocator(
+            m_delegate->select_on_container_copy_construction(
+                static_cast<A const&>(*this)) );
 }
 
 // Other Methods

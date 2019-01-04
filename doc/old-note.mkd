@@ -1,0 +1,102 @@
+Parameters
+----------
+
+* initial block     - optional
+
+* next allocator    - defaults to `bad_allocator` if block provided, std otherwise
+
+* strategy          - defaults to quickfit
+  - mark/release
+  - quickfit
+
+* observer          - optional
+ - may be chained
+
+* tracker         - optional
+ - may be chained
+
+Given the above five degrees of freedom, each of which has two possible values,
+2^5 = 32 basic allocators are possible.
+
+Simplifying
+-----------
+
+The Initial Block may be treated just as a dynamically allocated block, if each
+block is marked with an `autonomous` flag.
+
+    / 2
+
+The Next Allocator may use `bad_allocator` to indicate `null`
+
+    / 2             ... + 1
+
+The Strategy... ?
+
+The Observer may default to a `null_observer` type.
+
+    / 2             ... + 1
+
+The Tracker may default to a `null_tracker` type.  Trackers must
+statically expose the amount of space they impose on each allocation.
+
+    / 2             ... + 1
+
+So now, you need only five classes:
+
+    markrelease_allocator
+       quickfit_allocator
+            bad_allocator
+           null_observer
+           null_tracker
+
+Thoughts
+--------
+
+-------------------------------------------------------------------------------
+Functionality   Implementation                       Imps   Total
+--------------- ----------------------------------- -----  ------
+counting        decorator\                              1       1
+                requires sharing
+
+observability   parameterized decorator\                2       3
+                requires sharing if stateful\
+                TODO: Select imp per statefulness
+
+tracking        parameterized decorator\                2       5
+                requires sharing if stateful\
+                TODO: Select imp per statefulness
+
+type hiding     parameterized adaptor\                  2       7
+                requires sharing if stateful\
+                TODO: Select imp per statefulness
+
+rejection       `bad_allocator`                         1       8
+
+cap             decorator `cap_allocator`\              1       9
+                requires sharing
+
+buffer          constructor parameter\
+                forwarded by decorators
+
+strategy        `quickfit_allocator`                    2      11
+                `release_allocator`
+                requires sharing
+
+-------------------------------------------------------------------------------
+
+<style>
+  table {
+      border: 1px solid black;
+      border-collapse: collapse;
+  }
+  th {
+      background: #EDF;
+  }
+  tr:nth-child(2n + 1) {
+      background: #EEF;
+  }
+  td,th {
+      border: 1px solid black;
+      padding: 10px;
+  }
+</style>

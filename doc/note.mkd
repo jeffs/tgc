@@ -1,0 +1,94 @@
+<style>
+  table {
+      border: 1px solid black;
+      border-collapse: collapse;
+  }
+  th {
+      background: #EDF;
+  }
+  tr:nth-child(2n + 1) {
+      background: #EEF;
+  }
+  td,th {
+      border: 1px solid black;
+      padding: 10px;
+  }
+</style>
+
+-------------------------------------------------------------------------------
+Functionality   Implementation                       Imps   Total
+--------------- ----------------------------------- -----  ------
+counting        decorator\                              1       1
+                requires sharing\
+                `counting_delegate`
+
+observability   parameterized decorator\                2       3
+                requires sharing if stateful\
+                TODO: Select imp per statefulness
+
+tracking        parameterized decorator\                2       5
+                requires sharing if stateful\
+                TODO: Select imp per statefulness
+
+type hiding     parameterized adaptor\                  2       7
+                requires sharing if stateful\
+                TODO: Select imp per statefulness\
+                `flex_allocator`
+
+rejection       `bad_allocator`                         1       8
+
+cap             decorator `cap_allocator`\              1       9
+                requires sharing
+
+buffer          constructor parameter\
+                forwarded by decorators
+
+strategy        `quickfit_allocator`\                   2      11
+                `release_allocator`\
+                requires sharing
+
+sharing         `delegate_allocator`\                   2      13
+                `global_allocator`
+
+convenience     `local_allocator`\                      2      15
+                `fixed_allocator`
+
+concurrency     `locked_allocator` wraps all standard   1      16
+                calls in critical sections
+
+-------------------------------------------------------------------------------
+
+__Allocator Delegates__ provide core functionality atop buffers and allocators.
+
+* quickfit
+* mark/release
+
+__Allocator Delegate Decorators__ add functionality.
+
+* maintain counts
+* notify observers
+* annotate chunks
+* cap allocations
+* share delegates
+  - per copy group
+  - per static tag
+
+__Allocator Adaptors__ support common interfaces.
+
+* delegation
+* locking (technically a decorator, not an adaptor)
+* scoping
+* erasure
+
+__Support Components__ underpin other components.
+
+* select delegate sharing policies based on statefulness
+* forward statefulness typedefs from observers and trackers
+
+__Utility Components__ ease usage of the library.
+
+* alias templates for STL containers
+* alias templates for common constructions
+* factory function templates
+* short names
+* umbrella headers
